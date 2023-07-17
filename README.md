@@ -3,16 +3,17 @@ A Chip-8 emulator/interpreter written in Rust that uses SDL2.
 
 ## Objectives
 This project started as a personal programming challenge during my job vacation and it's been evolving ever since. Here are the only sources of knowledge I used up to this point:
-- Chip-8 technical reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#8xy3
+
+Chip-8 technical reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#8xy3
 This has to be one of the best Chip-8 doc out there. Don't let this page die!
 
-- Chip-8 on Wikipedia: https://en.wikipedia.org/wiki/CHIP-8
+Chip-8 on Wikipedia: https://en.wikipedia.org/wiki/CHIP-8
 Initial research was done here.
 
-- Web Chip-8 emulator (Octo): http://johnearnest.github.io/Octo/
+Web Chip-8 emulator (Octo): http://johnearnest.github.io/Octo/
 I used this app to better understand the Chip-8 game programs.
 
-- Rust book: https://doc.rust-lang.org/book/
+Rust book: https://doc.rust-lang.org/book/
 That's right, I didn't know anything about Rust and yet I decided to program an emulator using it... This book is phenomenal and covers basically everything you need to know to start your journey with the language. If you're an experienced Rust developer, please don't mind some "inappropriate" code here and there.
 
 ## Current Features

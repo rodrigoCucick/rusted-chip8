@@ -6,6 +6,7 @@ pub mod gfx;
 
 use emu::emulator::Memory;
 use gfx::graphics::{ CustomWindow, WindowController };
+use std::env;
 
 fn main() {
     let custom_window = CustomWindow::create_and_display_window(
@@ -17,8 +18,12 @@ fn main() {
     let mut window_controller = WindowController::new(custom_window);
 
     let mut mem = Memory::new();
+    
     // TODO: Add a method for custom file selection.
-    mem.init_ram("./game-program/demo.ch8");
+    let mut full_path = String::from(env::current_dir().unwrap().to_str().unwrap());
+    full_path.push_str("\\game-program\\demo.ch8");
+
+    mem.init_ram(&full_path);
 
     window_controller.render_and_handle_inputs(&mut mem);
 }
