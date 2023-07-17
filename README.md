@@ -9,7 +9,7 @@ This has to be one of the best Chip-8 doc out there. Don't let this page die!
 - Chip-8 on Wikipedia: https://en.wikipedia.org/wiki/CHIP-8
 Initial research was done here.
 
-- Web Chip-8 emulator: http://johnearnest.github.io/Octo/
+- Web Chip-8 emulator (Octo): http://johnearnest.github.io/Octo/
 I used this app to better understand the Chip-8 game programs.
 
 - Rust book: https://doc.rust-lang.org/book/
@@ -17,6 +17,8 @@ That's right, I didn't know anything about Rust and yet I decided to program an 
 
 ## Current Features
 As it is, the emulator can run a simple demo game program (file demo.ch8 located in the "game-program" folder):
+![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)
+_This demo game program was downloaded from the web Chip8 emulator (Octo) referred earlier._
 
 In total, 5 instructions are currently implemented because they were enough to run the demo game program, including the main sprite drawing routine (instruction `Dxyn`). Keeping it small during the initial development stages made it easier to debug.
 
