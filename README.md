@@ -12,7 +12,7 @@ This project started as a personal programming challenge during my job vacation 
 
 ## Current Features
 As it is, the emulator can run a simple demo game program (file demo.ch8 located in the "game-program" folder):
-`![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)`
+![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)
 _This demo game program was downloaded from the web Chip8 emulator (Octo) referred earlier._
 
 In total, 5 instructions are currently implemented because they were enough to run the demo game program, including the main sprite drawing routine (instruction `Dxyn`). Keeping it small during the initial development stages made it easier to debug.
