@@ -2,7 +2,9 @@
 A Chip-8 emulator/interpreter written in Rust that uses SDL2.
 
 ## Objectives
-This project started as a personal programming challenge during my job vacation and it's been evolving ever since. Here are the only sources of knowledge I used up to this point:
+This project started as a personal programming challenge during my job vacation and it's been evolving ever since.
+
+Here are the only sources of knowledge I used up to this point:
 |Link|Information|
 |--|--|
 |http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#8xy3|This has to be one of the best Chip-8 technical reference out there. Don't let this page die!|
@@ -41,7 +43,7 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`8xyE` - SHL Vx {, Vy}|No|
 |`9xy0` - SNE Vx, Vy|Yes|
 |`Annn` - LD I, addr|Yes|
-|`Bnnn` - JP V0, addr|No|
+|`Bnnn` - JP V0, addr|Yes|
 |`Cxkk` - RND Vx, byte|No|
 |`Dxyn` - DRW Vx, Vy, nibble|Yes|
 |`Ex9E` - SKP Vx|No|
