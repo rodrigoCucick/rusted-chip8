@@ -17,7 +17,7 @@ As it is, the emulator can run a simple demo game program (file demo.ch8 located
 ![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)
 _This demo game program was downloaded from the web Chip8 emulator (Octo) referred earlier._
 
-In total, 10 instructions are currently implemented.
+In total, 11 instructions are currently implemented.
 
 Implementation progress can be tracked by viewing the following table (I'll keep it updated as the project grows):
 |Instruction|Implemented?|
