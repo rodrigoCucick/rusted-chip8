@@ -15,19 +15,19 @@ As it is, the emulator can run a simple demo game program (file demo.ch8 located
 ![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)
 _This demo game program was downloaded from the web Chip8 emulator (Octo) referred earlier._
 
-In total, 5 instructions are currently implemented because they were enough to run the demo game program, including the main sprite drawing routine (instruction `Dxyn`). Keeping it small during the initial development stages made it easier to debug.
+In total, 10 instructions are currently implemented.
 
 Implementation progress can be tracked by viewing the following table (I'll keep it updated as the project grows):
 |Instruction|Implemented?|
 |--|--|
-|`00E0` - CLS|No|
+|`00E0` - CLS|Yes|
 |`00EE` - RET|No|
-|`0nnn` - SYS addr|No|
+|`0nnn` - SYS addr|No (not used)|
 |`1nnn` - JP addr|Yes|
 |`2nnn` - CALL addr|No|
-|`3xkk` - SE Vx, byte|No|
+|`3xkk` - SE Vx, byte|Yes|
 |`4xkk` - SNE Vx, byte|Yes|
-|`5xy0` - SE Vx, Vy|No|
+|`5xy0` - SE Vx, Vy|Yes|
 |`6xkk` - LD Vx, byte|Yes|
 |`7xkk` - ADD Vx, byte|Yes|
 |`8xy0` - LD Vx, Vy|No|
@@ -39,8 +39,8 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`8xy6` - SHR Vx {, Vy}|No|
 |`8xy7` - SUBN Vx, Vy|No|
 |`8xyE` - SHL Vx {, Vy}|No|
-|`9xy0` - SNE Vx, Vy|No|
-|`Annn` - LD I, addr|No|
+|`9xy0` - SNE Vx, Vy|Yes|
+|`Annn` - LD I, addr|Yes|
 |`Bnnn` - JP V0, addr|No|
 |`Cxkk` - RND Vx, byte|No|
 |`Dxyn` - DRW Vx, Vy, nibble|Yes|
