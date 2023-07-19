@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
-#![allow(warnings)]
 pub mod emulator {
     use std::fs::File;
     use std::io::Read;
 
     use crate::gfx::graphics::CustomWindowController;
+    use crate::util::utilities::BitManipulator;
     
     pub struct Memory {
         // Addresses from 0x000 (0) to 0x1ff (511) were originally occupied by the interpreter,
@@ -203,69 +203,98 @@ pub mod emulator {
         sprite_data: [u8;5],
     }
 
-    pub struct InstructionsController;
+    pub struct CpuController {
+        // Big-endian.
+        word: u16,         // [0000111100001111]
+        first_byte: u8,    // [00001111]00001111
+        second_byte: u8,   // 00001111[00001111]
+        first_nibble: u8,  // [0000]111100001111
+        second_nibble: u8, // 0000[1111]00001111
+        third_nibble: u8,  // 00001111[0000]1111
+        fourth_nibble: u8, // 000011110000[1111]
+        cycles_per_frame: u32,
+    }
 
-    impl InstructionsController {
-        pub fn exec_next_instr(mem_ctrl: &mut MemoryController, win_ctrl: &mut CustomWindowController) {
-            // Fragments the whole instruction into 4 nibbles, for easier manipulation.
-            let first_nibble  = mem_ctrl.mem.ram[mem_ctrl.mem.pc as usize] >> 4;
-            let second_nibble = mem_ctrl.mem.ram[mem_ctrl.mem.pc as usize] & 0b0000_1111;
-            let third_nibble  = mem_ctrl.mem.ram[(mem_ctrl.mem.pc + 1) as usize] >> 4;
-            let fourth_nibble = mem_ctrl.mem.ram[(mem_ctrl.mem.pc + 1) as usize] & 0b0000_1111;
+    impl CpuController {
+        pub fn new(mem_ctrl: &MemoryController, cycles_per_frame: u32) -> Self {
+            let lower_addr = mem_ctrl.mem.pc as usize;
 
-            let first_byte = mem_ctrl.mem.ram[mem_ctrl.mem.pc as usize];
-            let second_byte = mem_ctrl.mem.ram[(mem_ctrl.mem.pc + 1) as usize];
-            let complete_instr = InstructionsController::make_16_bit_instr_from_bytes(first_byte, second_byte);
+            let first_byte = mem_ctrl.mem.ram[lower_addr];
+            let second_byte = mem_ctrl.mem.ram[lower_addr + 1];
+
+            Self {
+                first_byte,
+                second_byte,
+                word:          BitManipulator::make_16_bit_instr_from_bytes(first_byte, second_byte),
+                first_nibble:  mem_ctrl.mem.ram[lower_addr] >> 4,
+                second_nibble: mem_ctrl.mem.ram[lower_addr] & 0b0000_1111,
+                third_nibble:  mem_ctrl.mem.ram[lower_addr + 1] >> 4,
+                fourth_nibble: mem_ctrl.mem.ram[lower_addr + 1] & 0b0000_1111,
+                cycles_per_frame,
+            }
+        }
+
+        pub fn exec_next_instr(&mut self, mem_ctrl: &mut MemoryController, win_ctrl: &mut CustomWindowController) {
+            self.load_next_instr(mem_ctrl);
 
             // 00E0 - CLS
-            if complete_instr == 0x00e0 {
+            if self.word == 0x00e0 {
                 win_ctrl.clear_screen();
             // 1nnn - JP addr
-            } else if first_nibble == 0x1 {
-                mem_ctrl.mem.pc = InstructionsController::make_16_bit_addr_from_nibbles(second_nibble, third_nibble, fourth_nibble);
+            } else if self.first_nibble == 0x1 {
+                mem_ctrl.mem.pc = BitManipulator::make_16_bit_addr_from_nibbles(
+                    self.second_nibble,
+                    self.third_nibble,
+                    self.fourth_nibble);
                 return;
             // 3xkk - SE Vx, byte
-            } else if first_nibble == 3 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(second_nibble) == second_byte {
+            } else if self.first_nibble == 3 {
+                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) == self.second_byte {
                     mem_ctrl.mem.pc += 2;
                 }
             // 4xkk - SNE Vx, byte
-            } else if first_nibble == 4 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(second_nibble) != second_byte {
+            } else if self.first_nibble == 4 {
+                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) != self.second_byte {
                     mem_ctrl.mem.pc += 2;
                 }
             // 5xy0 - SE Vx, Vy
-            } else if first_nibble == 5 && fourth_nibble == 0 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(second_nibble) ==
-                    mem_ctrl.get_v_register_val_by_nibble_val(third_nibble) {
+            } else if self.first_nibble == 5 && self.fourth_nibble == 0 {
+                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) ==
+                    mem_ctrl.get_v_register_val_by_nibble_val(self.third_nibble) {
                     mem_ctrl.mem.pc += 2;
                 }
             // 6xkk - LD Vx, byte
-            } else if first_nibble == 6 {
-                mem_ctrl.set_v_register_val_by_nibble_val(second_nibble, second_byte);
+            } else if self.first_nibble == 6 {
+                mem_ctrl.set_v_register_val_by_nibble_val(self.second_nibble, self.second_byte);
             // 7xkk - ADD Vx, byte.
-            } else if first_nibble == 7 {
-                let curr_vx_val = mem_ctrl.get_v_register_val_by_nibble_val(second_nibble);
-                mem_ctrl.set_v_register_val_by_nibble_val(second_nibble, curr_vx_val.wrapping_add(second_byte));
+            } else if self.first_nibble == 7 {
+                let curr_vx_val = mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble);
+                mem_ctrl.set_v_register_val_by_nibble_val(self.second_nibble, curr_vx_val.wrapping_add(self.second_byte));
             // 9xy0 - SNE Vx, Vy
-            } else if first_nibble == 9 && fourth_nibble == 0 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(second_nibble) !=
-                    mem_ctrl.get_v_register_val_by_nibble_val(third_nibble) {
+            } else if self.first_nibble == 9 && self.fourth_nibble == 0 {
+                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) !=
+                    mem_ctrl.get_v_register_val_by_nibble_val(self.third_nibble) {
                     mem_ctrl.mem.pc += 2;
                 }
             // Annn - LD I, addr
-            } else if first_nibble == 0xa {
-                mem_ctrl.mem.i = InstructionsController::make_16_bit_addr_from_nibbles(second_nibble, third_nibble, fourth_nibble);
+            } else if self.first_nibble == 0xa {
+                mem_ctrl.mem.i = BitManipulator::make_16_bit_addr_from_nibbles(
+                    self.second_nibble,
+                    self.third_nibble,
+                    self.fourth_nibble);
             // Bnnn - JP V0, addr
-            } else if first_nibble == 0xb {
+            } else if self.first_nibble == 0xb {
                 mem_ctrl.mem.pc =
-                    InstructionsController::make_16_bit_addr_from_nibbles(second_nibble, third_nibble, fourth_nibble) + mem_ctrl.mem.v0 as u16;
+                    BitManipulator::make_16_bit_addr_from_nibbles(
+                        self.second_nibble,
+                        self.third_nibble,
+                        self.fourth_nibble) + mem_ctrl.mem.v0 as u16;
             // Dxyn - DRW Vx, Vy, nibble.
-            } else if first_nibble == 0xd {  
+            } else if self.first_nibble == 0xd {  
                 mem_ctrl.mem.vf = 0; 
 
                 // fourth_nibble (Dxy(n)) specifies the size of the sprite.
-                for byte_i in 0..fourth_nibble {
+                for byte_i in 0..self.fourth_nibble {
                     // Load is based on the address stored on the register i.
                     let sprite_byte = mem_ctrl.mem.ram[(mem_ctrl.mem.i + byte_i as u16) as usize];
 
@@ -274,8 +303,8 @@ pub mod emulator {
                         // Only draws bits that are equal to 1, from most significant to least significant.
                         if (sprite_byte >> rev_bit_i & 1) == 1 {
                             win_ctrl.put_pixel(
-                                mem_ctrl.get_v_register_val_by_nibble_val(second_nibble).wrapping_add(curr_bit), 
-                                mem_ctrl.get_v_register_val_by_nibble_val(third_nibble).wrapping_add(byte_i),
+                                mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble).wrapping_add(curr_bit), 
+                                mem_ctrl.get_v_register_val_by_nibble_val(self.third_nibble).wrapping_add(byte_i),
                                 &mut mem_ctrl.mem.vf); // If there was a collision between pixels, vf is set to 1.
                         }
                         curr_bit += 1;
@@ -288,12 +317,20 @@ pub mod emulator {
             mem_ctrl.mem.pc += 2; 
         }
 
-        fn make_16_bit_addr_from_nibbles(second_nibble: u8, third_nibble: u8, fourth_nibble: u8) -> u16 {
-            (second_nibble as u16) << 8 | (third_nibble as u16) << 4 | (fourth_nibble as u16)
+        pub fn get_cycles_per_frame(&self) -> u32 {
+            self.cycles_per_frame
         }
 
-        fn make_16_bit_instr_from_bytes(first_byte: u8, second_byte: u8) -> u16 {
-            (first_byte as u16) << 8 | (second_byte as u16)
+        fn load_next_instr(&mut self, mem_ctrl: &MemoryController) {
+            let lower_addr = mem_ctrl.mem.pc as usize;
+
+            self.first_byte =    mem_ctrl.mem.ram[lower_addr];
+            self.second_byte =   mem_ctrl.mem.ram[lower_addr + 1];
+            self.word =          BitManipulator::make_16_bit_instr_from_bytes(self.first_byte, self.second_byte);
+            self.first_nibble =  mem_ctrl.mem.ram[lower_addr] >> 4;
+            self.second_nibble = mem_ctrl.mem.ram[lower_addr] & 0b0000_1111;
+            self.third_nibble =  mem_ctrl.mem.ram[lower_addr + 1] >> 4;
+            self.fourth_nibble = mem_ctrl.mem.ram[lower_addr + 1] & 0b0000_1111;
         }
     }
 }

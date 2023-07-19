@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
-#![allow(warnings)]
 pub mod graphics {
     use sdl2::event::Event;
     use sdl2::keyboard::Keycode;
@@ -11,8 +10,8 @@ pub mod graphics {
     use sdl2::video::Window;
     use std::time::Duration;
 
-    use crate::emu::emulator::{ InstructionsController, Memory, MemoryController };
-    use crate::math::math::Math2d;
+    use crate::emu::emulator::{ CpuController, MemoryController };
+    use crate::util::utilities::Math2d;
 
     pub struct CustomWindow {
         sdl_context: sdl2::Sdl,
@@ -93,17 +92,26 @@ pub mod graphics {
             Self { window }
         }
 
-        pub fn render_and_handle_inputs(&mut self, mem_ctrl: &mut MemoryController) {
-            let mut event_pump = self.window.sdl_context.event_pump().unwrap();
+        pub fn render_and_handle_inputs(&mut self, mem_ctrl: &mut MemoryController, cpu_ctrl: &mut CpuController) {
+            let mut event_pump = match self.window.sdl_context.event_pump() {
+                Ok(event_pump) => event_pump,
+                Err(_) => panic!("Couldn't obtain the EventPump.")
+            };
 
-            self.window.canvas.set_scale(self.window.scale as f32, self.window.scale as f32).unwrap();
+            if let Err(_) = self.window.canvas.set_scale(self.window.scale as f32, self.window.scale as f32) {
+                panic!("Couldn't set the canvas' drawing scale.");
+            };
+
+
             self.clear_screen();
 
             // Game program loop.
             'running: loop {
-                // TODO: Instruction cycle needs to be frame independent.
-                InstructionsController::exec_next_instr(mem_ctrl, self);
-
+                // TODO: Review cycles per frame and framerate logic.
+                for _ in 0..cpu_ctrl.get_cycles_per_frame() {
+                    cpu_ctrl.exec_next_instr(mem_ctrl, self);
+                }
+                
                 for event in event_pump.poll_iter() {
                     match event {
                         Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
@@ -113,7 +121,7 @@ pub mod graphics {
                 }
         
                 self.window.canvas.present();
-                std::thread::sleep(Duration::new(0, 1_000_000u32 / 60));
+                std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
             }
         }
 
@@ -133,7 +141,10 @@ pub mod graphics {
                 }
             );
 
-            self.window.canvas.draw_point(Point::new(corrected_x as i32, corrected_y as i32)).unwrap();
+            if let Err(_) = self.window.canvas.draw_point(Point::new(corrected_x as i32, corrected_y as i32)) {
+                panic!("Couldn't draw on the canvas!");
+            };
+
             self.window.canvas.set_draw_color(self.window.bg_color);
 
             // Flips the current pixel's virtual representation.
