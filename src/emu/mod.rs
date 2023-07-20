@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
 pub mod emulator {
+    use rand::Rng;
     use std::fs::File;
     use std::io::Read;
 
@@ -240,6 +241,7 @@ pub mod emulator {
             // 00E0 - CLS
             if self.word == 0x00e0 {
                 win_ctrl.clear_screen();
+
             // 1nnn - JP addr
             } else if self.first_nibble == 0x1 {
                 mem_ctrl.mem.pc = BitManipulator::make_16bit_addr_from_nibbles(
@@ -247,70 +249,105 @@ pub mod emulator {
                     self.third_nibble,
                     self.fourth_nibble);
                 return;
+
             // 3xkk - SE Vx, byte
             } else if self.first_nibble == 3 {
                 if mem_ctrl.get_v_by_nibble(self.second_nibble) == self.second_byte {
                     mem_ctrl.mem.pc += 2;
                 }
+
             // 4xkk - SNE Vx, byte
             } else if self.first_nibble == 4 {
                 if mem_ctrl.get_v_by_nibble(self.second_nibble) != self.second_byte {
                     mem_ctrl.mem.pc += 2;
                 }
+
             // 5xy0 - SE Vx, Vy
             } else if self.first_nibble == 5 && self.fourth_nibble == 0 {
                 if mem_ctrl.get_v_by_nibble(self.second_nibble) == mem_ctrl.get_v_by_nibble(self.third_nibble) {
                     mem_ctrl.mem.pc += 2;
                 }
+
             // 6xkk - LD Vx, byte
             } else if self.first_nibble == 6 {
                 mem_ctrl.set_v_by_nibble(self.second_nibble, self.second_byte);
+
             // 7xkk - ADD Vx, byte.
             } else if self.first_nibble == 7 {
                 let curr_vx_val = mem_ctrl.get_v_by_nibble(self.second_nibble);
                 mem_ctrl.set_v_by_nibble(self.second_nibble, curr_vx_val.wrapping_add(self.second_byte));
+
             // 8xy0 - LD Vx, Vy
             } else if self.first_nibble == 8 && self.fourth_nibble == 0 {
                 let temp_vy_val = mem_ctrl.get_v_by_nibble(self.third_nibble);
                 mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vy_val);
+
             // 8xy1 - OR Vx, Vy
             } else if self.first_nibble == 8 && self.fourth_nibble == 1 {
                 let temp_vx_or_vy =
                     mem_ctrl.get_v_by_nibble(self.second_nibble) | mem_ctrl.get_v_by_nibble(self.third_nibble);
                 mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_or_vy);
+
             // 8xy2 - AND Vx, Vy
             } else if self.first_nibble == 8 && self.fourth_nibble == 2 {
                 let temp_vx_and_vy =
                     mem_ctrl.get_v_by_nibble(self.second_nibble) & mem_ctrl.get_v_by_nibble(self.third_nibble);
                 mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_and_vy);
+
             // 8xy3 - XOR Vx, Vy
             } else if self.first_nibble == 8 && self.fourth_nibble == 3 {
                 let temp_vx_xor_vy =
                     mem_ctrl.get_v_by_nibble(self.second_nibble) ^ mem_ctrl.get_v_by_nibble(self.third_nibble);
                 mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_xor_vy);
+
             // 8xy4 - ADD Vx, Vy
             } else if self.first_nibble == 8 && self.fourth_nibble == 4 {
                 let temp_vx_plus_vy =
                     mem_ctrl.get_v_by_nibble(self.second_nibble) as u16 + mem_ctrl.get_v_by_nibble(self.third_nibble) as u16;
                 mem_ctrl.mem.vf = if temp_vx_plus_vy > 255 { 1 } else { 0 }; // Carry.
                 mem_ctrl.set_v_by_nibble(self.second_nibble, (temp_vx_plus_vy & 0b0000_0000_1111_1111) as u8);
+
             // 8xy5 - SUB Vx, Vy
             } else if self.first_nibble == 8 && self.fourth_nibble == 5 {
                 let temp_vx = mem_ctrl.get_v_by_nibble(self.second_nibble);
                 let temp_vy = mem_ctrl.get_v_by_nibble(self.third_nibble);
                 mem_ctrl.mem.vf = if temp_vx > temp_vy { 1 } else { 0 }; // NOT borrow.
                 mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx.wrapping_sub(temp_vy));
+
+            // 8xy6 - SHR Vx {, Vy}
+            } else if self.first_nibble == 8 && self.fourth_nibble == 6 {
+                let temp_vx = mem_ctrl.get_v_by_nibble(self.second_nibble);
+                mem_ctrl.mem.vf = if temp_vx & 0b0001 == 1 { 1 } else { 0 };
+                let temp_vx_shr_one = temp_vx >> 1;
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_shr_one);
+
+            // 8xy7 - SUBN Vx, Vy
+            } else if self.first_nibble == 8 && self.fourth_nibble == 7 {
+                let temp_vx = mem_ctrl.get_v_by_nibble(self.second_nibble);
+                let temp_vy = mem_ctrl.get_v_by_nibble(self.third_nibble);
+                mem_ctrl.mem.vf = if temp_vy > temp_vx { 1 } else { 0 }; // NOT borrow.
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vy.wrapping_sub(temp_vx));
+
+            // 8xyE - SHL Vx {, Vy}
+            } else if self.first_nibble == 8 && self.fourth_nibble == 0xe {
+                let temp_vx = mem_ctrl.get_v_by_nibble(self.second_nibble);
+                mem_ctrl.mem.vf = if temp_vx & 0b1000 == 1 { 1 } else { 0 };
+                let temp_vx_shl_one = temp_vx << 1;
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_shl_one);
+
             // 9xy0 - SNE Vx, Vy
             } else if self.first_nibble == 9 && self.fourth_nibble == 0 {
                 if mem_ctrl.get_v_by_nibble(self.second_nibble) != mem_ctrl.get_v_by_nibble(self.third_nibble) {
                     mem_ctrl.mem.pc += 2;
                 }
+
             // Annn - LD I, addr
             } else if self.first_nibble == 0xa {
                 mem_ctrl.mem.i = BitManipulator::make_16bit_addr_from_nibbles(
                     self.second_nibble,
                     self.third_nibble,
                     self.fourth_nibble);
+
             // Bnnn - JP V0, addr
             } else if self.first_nibble == 0xb {
                 mem_ctrl.mem.pc =
@@ -318,6 +355,11 @@ pub mod emulator {
                         self.second_nibble,
                         self.third_nibble,
                         self.fourth_nibble) + mem_ctrl.mem.v0 as u16;
+
+            // Cxkk - RND Vx, byte
+            } else if self.first_nibble == 0xc {
+                mem_ctrl.set_v_by_nibble(self.second_nibble, rand::thread_rng().gen_range(0..=255) & self.second_byte);
+
             // Dxyn - DRW Vx, Vy, nibble.
             } else if self.first_nibble == 0xd {  
                 mem_ctrl.mem.vf = 0; 

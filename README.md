@@ -36,13 +36,13 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`8xy3` - XOR Vx, Vy|Yes|
 |`8xy4` - ADD Vx, Vy|Yes|
 |`8xy5` - SUB Vx, Vy|Yes|
-|`8xy6` - SHR Vx {, Vy}|No|
-|`8xy7` - SUBN Vx, Vy|No|
-|`8xyE` - SHL Vx {, Vy}|No|
+|`8xy6` - SHR Vx {, Vy}|Yes|
+|`8xy7` - SUBN Vx, Vy|Yes|
+|`8xyE` - SHL Vx {, Vy}|Yes|
 |`9xy0` - SNE Vx, Vy|Yes|
 |`Annn` - LD I, addr|Yes|
 |`Bnnn` - JP V0, addr|Yes|
-|`Cxkk` - RND Vx, byte|No|
+|`Cxkk` - RND Vx, byte|Yes|
 |`Dxyn` - DRW Vx, Vy, nibble|Yes|
 |`Ex9E` - SKP Vx|No|
 |`ExA1` - SKNP Vx|No|
