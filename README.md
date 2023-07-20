@@ -55,6 +55,7 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`Fx33` - LD B, Vx|No|
 |`Fx55` - LD [I], Vx|No|
 |`Fx65` - LD Vx, [I]|No|
+
 In total, **17** instructions are currently implemented.
 
 ## Building
