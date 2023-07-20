@@ -3,10 +3,12 @@
 
 pub mod graphics {
     use sdl2::event::Event;
+    use sdl2::image::LoadSurface;
     use sdl2::keyboard::Keycode;
     use sdl2::pixels::Color;
     use sdl2::rect::Point;
     use sdl2::render::Canvas;
+    use sdl2::surface::Surface;
     use sdl2::video::Window;
     use std::time::Duration;
 
@@ -46,7 +48,7 @@ pub mod graphics {
             let win_w_scaled = win_w * scale;
             let win_h_scaled = win_h * scale;
 
-            let canvas = match sdl_context.video() {
+            let mut canvas = match sdl_context.video() {
                 Ok(video_subsystem) => {
                     match video_subsystem.window(win_title, win_w_scaled, win_h_scaled)
                         .position_centered()
@@ -62,6 +64,10 @@ pub mod graphics {
                 },
                 Err(_) => panic!("Couldn't initialize SDL2 video subsystem.")
             };
+
+            if let Ok(win_icon) = Surface::from_file(".\\assets\\img\\icon.png") {
+                canvas.window_mut().set_icon(win_icon);
+            }
             
             Self {
                 sdl_context,

@@ -96,7 +96,7 @@ pub mod emulator {
             self.load_hex_digits_sprites();
         }
 
-        pub fn get_v_register_val_by_nibble_val(&mut self, nibble: u8) -> u8 {
+        pub fn get_v_by_nibble(&mut self, nibble: u8) -> u8 {
             match nibble {
                 0 =>   self.mem.v0,
                 1 =>   self.mem.v1,
@@ -117,7 +117,7 @@ pub mod emulator {
             }
         }
 
-        pub fn set_v_register_val_by_nibble_val(&mut self, nibble: u8, val: u8) {
+        pub fn set_v_by_nibble(&mut self, nibble: u8, val: u8) {
             match nibble {
                 0 =>   self.mem.v0 = val,
                 1 =>   self.mem.v1 = val,
@@ -225,7 +225,7 @@ pub mod emulator {
             Self {
                 first_byte,
                 second_byte,
-                word:          BitManipulator::make_16_bit_instr_from_bytes(first_byte, second_byte),
+                word:          BitManipulator::make_16bit_instr_from_bytes(first_byte, second_byte),
                 first_nibble:  mem_ctrl.mem.ram[lower_addr] >> 4,
                 second_nibble: mem_ctrl.mem.ram[lower_addr] & 0b0000_1111,
                 third_nibble:  mem_ctrl.mem.ram[lower_addr + 1] >> 4,
@@ -242,50 +242,79 @@ pub mod emulator {
                 win_ctrl.clear_screen();
             // 1nnn - JP addr
             } else if self.first_nibble == 0x1 {
-                mem_ctrl.mem.pc = BitManipulator::make_16_bit_addr_from_nibbles(
+                mem_ctrl.mem.pc = BitManipulator::make_16bit_addr_from_nibbles(
                     self.second_nibble,
                     self.third_nibble,
                     self.fourth_nibble);
                 return;
             // 3xkk - SE Vx, byte
             } else if self.first_nibble == 3 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) == self.second_byte {
+                if mem_ctrl.get_v_by_nibble(self.second_nibble) == self.second_byte {
                     mem_ctrl.mem.pc += 2;
                 }
             // 4xkk - SNE Vx, byte
             } else if self.first_nibble == 4 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) != self.second_byte {
+                if mem_ctrl.get_v_by_nibble(self.second_nibble) != self.second_byte {
                     mem_ctrl.mem.pc += 2;
                 }
             // 5xy0 - SE Vx, Vy
             } else if self.first_nibble == 5 && self.fourth_nibble == 0 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) ==
-                    mem_ctrl.get_v_register_val_by_nibble_val(self.third_nibble) {
+                if mem_ctrl.get_v_by_nibble(self.second_nibble) == mem_ctrl.get_v_by_nibble(self.third_nibble) {
                     mem_ctrl.mem.pc += 2;
                 }
             // 6xkk - LD Vx, byte
             } else if self.first_nibble == 6 {
-                mem_ctrl.set_v_register_val_by_nibble_val(self.second_nibble, self.second_byte);
+                mem_ctrl.set_v_by_nibble(self.second_nibble, self.second_byte);
             // 7xkk - ADD Vx, byte.
             } else if self.first_nibble == 7 {
-                let curr_vx_val = mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble);
-                mem_ctrl.set_v_register_val_by_nibble_val(self.second_nibble, curr_vx_val.wrapping_add(self.second_byte));
+                let curr_vx_val = mem_ctrl.get_v_by_nibble(self.second_nibble);
+                mem_ctrl.set_v_by_nibble(self.second_nibble, curr_vx_val.wrapping_add(self.second_byte));
+            // 8xy0 - LD Vx, Vy
+            } else if self.first_nibble == 8 && self.fourth_nibble == 0 {
+                let temp_vy_val = mem_ctrl.get_v_by_nibble(self.third_nibble);
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vy_val);
+            // 8xy1 - OR Vx, Vy
+            } else if self.first_nibble == 8 && self.fourth_nibble == 1 {
+                let temp_vx_or_vy =
+                    mem_ctrl.get_v_by_nibble(self.second_nibble) | mem_ctrl.get_v_by_nibble(self.third_nibble);
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_or_vy);
+            // 8xy2 - AND Vx, Vy
+            } else if self.first_nibble == 8 && self.fourth_nibble == 2 {
+                let temp_vx_and_vy =
+                    mem_ctrl.get_v_by_nibble(self.second_nibble) & mem_ctrl.get_v_by_nibble(self.third_nibble);
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_and_vy);
+            // 8xy3 - XOR Vx, Vy
+            } else if self.first_nibble == 8 && self.fourth_nibble == 3 {
+                let temp_vx_xor_vy =
+                    mem_ctrl.get_v_by_nibble(self.second_nibble) ^ mem_ctrl.get_v_by_nibble(self.third_nibble);
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx_xor_vy);
+            // 8xy4 - ADD Vx, Vy
+            } else if self.first_nibble == 8 && self.fourth_nibble == 4 {
+                let temp_vx_plus_vy =
+                    mem_ctrl.get_v_by_nibble(self.second_nibble) as u16 + mem_ctrl.get_v_by_nibble(self.third_nibble) as u16;
+                mem_ctrl.mem.vf = if temp_vx_plus_vy > 255 { 1 } else { 0 }; // Carry.
+                mem_ctrl.set_v_by_nibble(self.second_nibble, (temp_vx_plus_vy & 0b0000_0000_1111_1111) as u8);
+            // 8xy5 - SUB Vx, Vy
+            } else if self.first_nibble == 8 && self.fourth_nibble == 5 {
+                let temp_vx = mem_ctrl.get_v_by_nibble(self.second_nibble);
+                let temp_vy = mem_ctrl.get_v_by_nibble(self.third_nibble);
+                mem_ctrl.mem.vf = if temp_vx > temp_vy { 1 } else { 0 }; // NOT borrow.
+                mem_ctrl.set_v_by_nibble(self.second_nibble, temp_vx.wrapping_sub(temp_vy));
             // 9xy0 - SNE Vx, Vy
             } else if self.first_nibble == 9 && self.fourth_nibble == 0 {
-                if mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble) !=
-                    mem_ctrl.get_v_register_val_by_nibble_val(self.third_nibble) {
+                if mem_ctrl.get_v_by_nibble(self.second_nibble) != mem_ctrl.get_v_by_nibble(self.third_nibble) {
                     mem_ctrl.mem.pc += 2;
                 }
             // Annn - LD I, addr
             } else if self.first_nibble == 0xa {
-                mem_ctrl.mem.i = BitManipulator::make_16_bit_addr_from_nibbles(
+                mem_ctrl.mem.i = BitManipulator::make_16bit_addr_from_nibbles(
                     self.second_nibble,
                     self.third_nibble,
                     self.fourth_nibble);
             // Bnnn - JP V0, addr
             } else if self.first_nibble == 0xb {
                 mem_ctrl.mem.pc =
-                    BitManipulator::make_16_bit_addr_from_nibbles(
+                    BitManipulator::make_16bit_addr_from_nibbles(
                         self.second_nibble,
                         self.third_nibble,
                         self.fourth_nibble) + mem_ctrl.mem.v0 as u16;
@@ -303,8 +332,8 @@ pub mod emulator {
                         // Only draws bits that are equal to 1, from most significant to least significant.
                         if (sprite_byte >> rev_bit_i & 1) == 1 {
                             win_ctrl.put_pixel(
-                                mem_ctrl.get_v_register_val_by_nibble_val(self.second_nibble).wrapping_add(curr_bit), 
-                                mem_ctrl.get_v_register_val_by_nibble_val(self.third_nibble).wrapping_add(byte_i),
+                                mem_ctrl.get_v_by_nibble(self.second_nibble).wrapping_add(curr_bit), 
+                                mem_ctrl.get_v_by_nibble(self.third_nibble).wrapping_add(byte_i),
                                 &mut mem_ctrl.mem.vf); // If there was a collision between pixels, vf is set to 1.
                         }
                         curr_bit += 1;
@@ -326,7 +355,7 @@ pub mod emulator {
 
             self.first_byte =    mem_ctrl.mem.ram[lower_addr];
             self.second_byte =   mem_ctrl.mem.ram[lower_addr + 1];
-            self.word =          BitManipulator::make_16_bit_instr_from_bytes(self.first_byte, self.second_byte);
+            self.word =          BitManipulator::make_16bit_instr_from_bytes(self.first_byte, self.second_byte);
             self.first_nibble =  mem_ctrl.mem.ram[lower_addr] >> 4;
             self.second_nibble = mem_ctrl.mem.ram[lower_addr] & 0b0000_1111;
             self.third_nibble =  mem_ctrl.mem.ram[lower_addr + 1] >> 4;

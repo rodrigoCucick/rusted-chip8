@@ -17,8 +17,6 @@ As it is, the emulator can run a simple demo game program (file demo.ch8 located
 ![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)
 _This demo game program was downloaded from the web Chip8 emulator (Octo) referred earlier._
 
-In total, 11 instructions are currently implemented.
-
 Implementation progress can be tracked by viewing the following table (I'll keep it updated as the project grows):
 |Instruction|Implemented?|
 |--|--|
@@ -32,12 +30,12 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`5xy0` - SE Vx, Vy|Yes|
 |`6xkk` - LD Vx, byte|Yes|
 |`7xkk` - ADD Vx, byte|Yes|
-|`8xy0` - LD Vx, Vy|No|
-|`8xy1` - OR Vx, Vy|No|
-|`8xy2` - AND Vx, Vy|No|
-|`8xy3` - XOR Vx, Vy|No|
-|`8xy4` - ADD Vx, Vy|No|
-|`8xy5` - SUB Vx, Vy|No|
+|`8xy0` - LD Vx, Vy|Yes|
+|`8xy1` - OR Vx, Vy|Yes|
+|`8xy2` - AND Vx, Vy|Yes|
+|`8xy3` - XOR Vx, Vy|Yes|
+|`8xy4` - ADD Vx, Vy|Yes|
+|`8xy5` - SUB Vx, Vy|Yes|
 |`8xy6` - SHR Vx {, Vy}|No|
 |`8xy7` - SUBN Vx, Vy|No|
 |`8xyE` - SHL Vx {, Vy}|No|
@@ -57,9 +55,12 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`Fx33` - LD B, Vx|No|
 |`Fx55` - LD [I], Vx|No|
 |`Fx65` - LD Vx, [I]|No|
+In total, **17** instructions are currently implemented.
 
 ## Building
-To build this project you'll need to follow some steps located on the page https://github.com/Rust-SDL2/rust-sdl2.
+This project uses SDL2 so, in order to build it, you'll need to follow some steps located on the page https://github.com/Rust-SDL2/rust-sdl2.
+
+SDL_image is also used, you can download it here https://github.com/libsdl-org/SDL_image.
 
 As an example, on my enviroment I had to put the SDL2 files in the folder `C:\Users\my_user\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib` before using `cargo`.
 
@@ -68,3 +69,5 @@ The SDL2 files are the following:
 2. SDL2.lib
 3. SDL2main.lib
 4. SDL2test.lib
+5. SDL2_image.dll
+6. SDL2_image.lib

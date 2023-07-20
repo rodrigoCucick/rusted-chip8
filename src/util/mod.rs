@@ -13,11 +13,11 @@ pub mod utilities {
     pub struct BitManipulator;
 
     impl BitManipulator {
-        pub fn make_16_bit_addr_from_nibbles(second_nibble: u8, third_nibble: u8, fourth_nibble: u8) -> u16 {
+        pub fn make_16bit_addr_from_nibbles(second_nibble: u8, third_nibble: u8, fourth_nibble: u8) -> u16 {
             (second_nibble as u16) << 8 | (third_nibble as u16) << 4 | (fourth_nibble as u16)
         }
 
-        pub fn make_16_bit_instr_from_bytes(first_byte: u8, second_byte: u8) -> u16 {
+        pub fn make_16bit_instr_from_bytes(first_byte: u8, second_byte: u8) -> u16 {
             (first_byte as u16) << 8 | (second_byte as u16)
         }
     }

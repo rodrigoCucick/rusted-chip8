@@ -23,7 +23,7 @@ fn main() {
     
     // TODO: Add another method for file selection (command line?).
     let mut game_program_path = String::from(env::current_dir().unwrap().to_str().unwrap());
-    game_program_path.push_str("\\game-program\\demo.ch8");
+    game_program_path.push_str("\\assets\\game-program\\demo.ch8");
     let mut mem_ctrl = MemoryController::new(Memory::new());
     mem_ctrl.init_ram(&game_program_path);
 
