@@ -97,6 +97,17 @@ pub mod emulator {
             self.load_hex_digits_sprites();
         }
 
+        pub fn stack_push(&mut self, new_pc_addr: u16) {
+            self.mem.sp += 1;
+            self.mem.stack[(self.mem.sp - 1) as usize] = self.mem.pc;
+            self.mem.pc = new_pc_addr;
+        }
+
+        pub fn stack_pop(&mut self) {
+            self.mem.pc = self.mem.stack[(self.mem.sp - 1) as usize];
+            self.mem.sp -= 1;
+        }
+
         pub fn get_v_by_nibble(&mut self, nibble: u8) -> u8 {
             match nibble {
                 0 =>   self.mem.v0,
@@ -242,12 +253,25 @@ pub mod emulator {
             if self.word == 0x00e0 {
                 win_ctrl.clear_screen();
 
+            // 00EE - RET
+            } else if self.word == 0x00ee {
+                mem_ctrl.stack_pop();
+                return;
+
             // 1nnn - JP addr
-            } else if self.first_nibble == 0x1 {
+            } else if self.first_nibble == 1 {
                 mem_ctrl.mem.pc = BitManipulator::make_16bit_addr_from_nibbles(
                     self.second_nibble,
                     self.third_nibble,
                     self.fourth_nibble);
+                return;
+
+            // 2nnn - CALL addr
+            } else if self.first_nibble == 2 {
+                mem_ctrl.stack_push(BitManipulator::make_16bit_addr_from_nibbles(
+                    self.second_nibble,
+                    self.third_nibble,
+                    self.fourth_nibble));
                 return;
 
             // 3xkk - SE Vx, byte

@@ -21,10 +21,10 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |Instruction|Implemented?|
 |--|--|
 |`00E0` - CLS|Yes|
-|`00EE` - RET|No|
+|`00EE` - RET|Yes|
 |`0nnn` - SYS addr|No (not used)|
 |`1nnn` - JP addr|Yes|
-|`2nnn` - CALL addr|No|
+|`2nnn` - CALL addr|Yes|
 |`3xkk` - SE Vx, byte|Yes|
 |`4xkk` - SNE Vx, byte|Yes|
 |`5xy0` - SE Vx, Vy|Yes|
