@@ -56,7 +56,7 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`Fx55` - LD [I], Vx|No|
 |`Fx65` - LD Vx, [I]|No|
 
-In total, **21** instructions are currently implemented.
+In total, **23** instructions are currently implemented.
 
 ## Building
 This project uses SDL2 so, in order to build it, you'll need to follow some steps located on the page https://github.com/Rust-SDL2/rust-sdl2.
