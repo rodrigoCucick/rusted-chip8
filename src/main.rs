@@ -5,31 +5,44 @@ pub mod emu;
 pub mod gfx;
 pub mod util;
 
-use emu::emulator::{ Memory, MemoryController, Keyboard, KeyboardController, CpuController };
+use emu::emulator::{ 
+    EmulatorConfiguration,
+    Memory,
+    MemoryController,
+    Keyboard,
+    KeyboardController,
+    CpuController
+};
+
 use gfx::graphics::{ CustomWindow, CustomWindowController };
-use sdl2::pixels::Color;
+
 use std::env;
 
 fn main() {
+    let emu_config = EmulatorConfiguration::new();
+    
     let mut window_controller =
         CustomWindowController::new(CustomWindow::create_and_display_window(
             "Rusted - Chip-8 Emulator/Interpreter",
             64,
             32,
-            10,
-            Color::RGB(0x00, 0x00, 0x00),
-            Color::RGB(0xff, 0xff, 0xff)
+            emu_config.get_scale(),
+            emu_config.get_bg_color(),
+            emu_config.get_pixel_color()
         ));
     
-    // TODO: Add another method for file selection (command line?).
-    let mut game_program_path = String::from(env::current_dir().unwrap().to_str().unwrap());
-    game_program_path.push_str("\\assets\\game-program\\default.ch8");
+    // TODO: Let the user decide which ROM file to load via CLI.
+    let mut rom_path = String::from(env::current_dir().unwrap().to_str().unwrap());
+    rom_path.push_str("\\");
+    rom_path.push_str(emu_config.get_default_ch8_folder());
+    rom_path.push_str("\\default.ch8");
+    
     let mut mem_ctrl = MemoryController::new(Memory::new());
-    mem_ctrl.init_ram(&game_program_path);
+    mem_ctrl.init_ram(&rom_path);
 
     let mut keyboard_ctrl = KeyboardController::new(Keyboard::new());
 
-    let mut cpu_ctrl = CpuController::new(&mem_ctrl, 7);
+    let mut cpu_ctrl = CpuController::new(&mem_ctrl, emu_config.get_cycles_per_frame());
 
     window_controller.render_and_handle_inputs(&mut mem_ctrl, &mut keyboard_ctrl, &mut cpu_ctrl);
 }

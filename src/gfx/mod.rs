@@ -2,6 +2,9 @@
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
 pub mod graphics {
+    use crate::emu::emulator::{ CpuController, KeyboardController, MemoryController };
+    use crate::util::utilities::Math2d;
+
     use sdl2::event::Event;
     use sdl2::image::LoadSurface;
     use sdl2::keyboard::Keycode;
@@ -10,10 +13,8 @@ pub mod graphics {
     use sdl2::render::Canvas;
     use sdl2::surface::Surface;
     use sdl2::video::Window;
+    
     use std::time::Duration;
-
-    use crate::emu::emulator::{ CpuController, KeyboardController, MemoryController };
-    use crate::util::utilities::Math2d;
 
     pub struct CustomWindow {
         sdl_context: sdl2::Sdl,
