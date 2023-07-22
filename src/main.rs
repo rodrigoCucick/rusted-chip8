@@ -5,7 +5,7 @@ pub mod emu;
 pub mod gfx;
 pub mod util;
 
-use emu::emulator::{ Memory, MemoryController, CpuController };
+use emu::emulator::{ Memory, MemoryController, Keyboard, KeyboardController, CpuController };
 use gfx::graphics::{ CustomWindow, CustomWindowController };
 use sdl2::pixels::Color;
 use std::env;
@@ -23,11 +23,13 @@ fn main() {
     
     // TODO: Add another method for file selection (command line?).
     let mut game_program_path = String::from(env::current_dir().unwrap().to_str().unwrap());
-    game_program_path.push_str("\\assets\\game-program\\demo.ch8");
+    game_program_path.push_str("\\assets\\game-program\\default.ch8");
     let mut mem_ctrl = MemoryController::new(Memory::new());
     mem_ctrl.init_ram(&game_program_path);
 
+    let mut keyboard_ctrl = KeyboardController::new(Keyboard::new());
+
     let mut cpu_ctrl = CpuController::new(&mem_ctrl, 7);
 
-    window_controller.render_and_handle_inputs(&mut mem_ctrl, &mut cpu_ctrl);
+    window_controller.render_and_handle_inputs(&mut mem_ctrl, &mut keyboard_ctrl, &mut cpu_ctrl);
 }

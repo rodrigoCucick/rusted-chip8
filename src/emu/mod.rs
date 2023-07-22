@@ -125,6 +125,7 @@ pub mod emulator {
                 0xc => self.mem.vc,
                 0xd => self.mem.vd,
                 0xe => self.mem.ve,
+                0xf => self.mem.vf,
                 _ => 0
             }
         }
@@ -146,6 +147,7 @@ pub mod emulator {
                 0xc => self.mem.vc = val,
                 0xd => self.mem.vd = val,
                 0xe => self.mem.ve = val,
+                0xf => self.mem.vf = val,
                 _ => ()
             }
         }
@@ -157,6 +159,12 @@ pub mod emulator {
                 if (i + 1) % 8 == 0 {
                     println!();
                 }
+            }
+        }
+
+        pub fn dec_dt(&mut self) {
+            if self.mem.dt != 0 {
+                self.mem.dt -= 1;
             }
         }
 
@@ -246,7 +254,10 @@ pub mod emulator {
             }
         }
 
-        pub fn exec_next_instr(&mut self, mem_ctrl: &mut MemoryController, win_ctrl: &mut CustomWindowController) {
+        pub fn exec_next_instr(
+            &mut self, mem_ctrl: &mut MemoryController,
+            win_ctrl: &mut CustomWindowController,
+            keyboard_ctrl: &mut KeyboardController) {
             self.load_next_instr(mem_ctrl);
 
             // 00E0 - CLS
@@ -405,6 +416,31 @@ pub mod emulator {
                         curr_bit += 1;
                     }
                 }
+
+            // Ex
+            } else if self.first_nibble == 0xe {
+                // 9E - SKP Vx
+                if self.second_byte == 0x9e &&
+                    keyboard_ctrl.is_key_x_pressed(mem_ctrl.get_v_by_nibble(self.second_nibble)) {
+                    mem_ctrl.mem.pc += 2;
+
+                // A1 - SKNP Vx
+                } else if self.second_byte == 0xa1 &&
+                    !keyboard_ctrl.is_key_x_pressed(mem_ctrl.get_v_by_nibble(self.second_nibble)) {
+                    mem_ctrl.mem.pc += 2;
+                }
+            
+            // Fx
+            } else if self.first_nibble == 0xf {
+                // 07 - LD Vx, DT
+                if self.second_byte == 0x07 {
+                    mem_ctrl.set_v_by_nibble(self.second_nibble, mem_ctrl.mem.dt);
+                }
+
+                // 15 - LD DT, Vx
+                else if self.second_byte == 0x15 {
+                    mem_ctrl.mem.dt = mem_ctrl.get_v_by_nibble(self.second_nibble);
+                }
             }
 
             // The program counter is incremented by 2 because all instructions are 2 bytes
@@ -426,6 +462,38 @@ pub mod emulator {
             self.second_nibble = mem_ctrl.mem.ram[lower_addr] & 0b0000_1111;
             self.third_nibble =  mem_ctrl.mem.ram[lower_addr + 1] >> 4;
             self.fourth_nibble = mem_ctrl.mem.ram[lower_addr + 1] & 0b0000_1111;
+        }
+    }
+
+    pub struct Keyboard {
+        key_arr: [u8;16],
+    }
+
+    impl Keyboard {
+        pub fn new() -> Self {
+            Self { key_arr: [0;16] }
+        }
+    }
+
+    pub struct KeyboardController {
+        keyboard: Keyboard,
+    }
+
+    impl KeyboardController {
+        pub fn new(keyboard: Keyboard) -> Self {
+            Self { keyboard }
+        }
+
+        pub fn set_key_down_x(&mut self, key_index: usize) {
+            self.keyboard.key_arr[key_index] = 1;
+        }
+
+        pub fn set_key_up_x(&mut self, key_index: usize) {
+            self.keyboard.key_arr[key_index] = 0;
+        }
+
+        pub fn is_key_x_pressed(&mut self, key_index: u8) -> bool {
+            self.keyboard.key_arr[key_index as usize] == 1
         }
     }
 }

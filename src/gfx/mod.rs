@@ -12,7 +12,7 @@ pub mod graphics {
     use sdl2::video::Window;
     use std::time::Duration;
 
-    use crate::emu::emulator::{ CpuController, MemoryController };
+    use crate::emu::emulator::{ CpuController, KeyboardController, MemoryController };
     use crate::util::utilities::Math2d;
 
     pub struct CustomWindow {
@@ -98,7 +98,11 @@ pub mod graphics {
             Self { window }
         }
 
-        pub fn render_and_handle_inputs(&mut self, mem_ctrl: &mut MemoryController, cpu_ctrl: &mut CpuController) {
+        pub fn render_and_handle_inputs(
+            &mut self,
+            mem_ctrl: &mut MemoryController,
+            keyboard_ctrl: &mut KeyboardController,
+            cpu_ctrl: &mut CpuController) {
             let mut event_pump = match self.window.sdl_context.event_pump() {
                 Ok(event_pump) => event_pump,
                 Err(_) => panic!("Couldn't obtain the EventPump.")
@@ -108,24 +112,56 @@ pub mod graphics {
                 panic!("Couldn't set the canvas' drawing scale.");
             };
 
-
             self.clear_screen();
 
             // Game program loop.
             'running: loop {
-                // TODO: Review cycles per frame and framerate logic.
+                mem_ctrl.dec_dt();
+
+                // TODO: Review cycles per frame and framerate logic. Appears to be ok.
                 for _ in 0..cpu_ctrl.get_cycles_per_frame() {
-                    cpu_ctrl.exec_next_instr(mem_ctrl, self);
-                }
-                
-                for event in event_pump.poll_iter() {
-                    match event {
-                        Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
-                        // TODO: KeyDown events need to be added for the system's hex keyboard (keys 0 to f).
-                        _ => {}
+                    for event in event_pump.poll_iter() {
+                        match event {
+                            Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
+                            Event::KeyDown { keycode: Some(Keycode::Kp0), .. } => keyboard_ctrl.set_key_down_x(0),
+                            Event::KeyDown { keycode: Some(Keycode::Kp1), .. } => keyboard_ctrl.set_key_down_x(1),
+                            Event::KeyDown { keycode: Some(Keycode::Kp2), .. } => keyboard_ctrl.set_key_down_x(2),
+                            Event::KeyDown { keycode: Some(Keycode::Kp3), .. } => keyboard_ctrl.set_key_down_x(3),
+                            Event::KeyDown { keycode: Some(Keycode::Kp4), .. } => keyboard_ctrl.set_key_down_x(4),
+                            Event::KeyDown { keycode: Some(Keycode::Kp5), .. } => keyboard_ctrl.set_key_down_x(5),
+                            Event::KeyDown { keycode: Some(Keycode::Kp6), .. } => keyboard_ctrl.set_key_down_x(6),
+                            Event::KeyDown { keycode: Some(Keycode::Kp7), .. } => keyboard_ctrl.set_key_down_x(7),
+                            Event::KeyDown { keycode: Some(Keycode::Kp8), .. } => keyboard_ctrl.set_key_down_x(8),
+                            Event::KeyDown { keycode: Some(Keycode::Kp9), .. } => keyboard_ctrl.set_key_down_x(9),
+                            Event::KeyDown { keycode: Some(Keycode::A), .. } =>   keyboard_ctrl.set_key_down_x(0xa),
+                            Event::KeyDown { keycode: Some(Keycode::B), .. } =>   keyboard_ctrl.set_key_down_x(0xb),
+                            Event::KeyDown { keycode: Some(Keycode::C), .. } =>   keyboard_ctrl.set_key_down_x(0xc),
+                            Event::KeyDown { keycode: Some(Keycode::D), .. } =>   keyboard_ctrl.set_key_down_x(0xd),
+                            Event::KeyDown { keycode: Some(Keycode::E), .. } =>   keyboard_ctrl.set_key_down_x(0xe),
+                            Event::KeyDown { keycode: Some(Keycode::F), .. } =>   keyboard_ctrl.set_key_down_x(0xf),
+                            Event::KeyUp { keycode: Some(Keycode::Kp0), .. } =>   keyboard_ctrl.set_key_up_x(0),
+                            Event::KeyUp { keycode: Some(Keycode::Kp1), .. } =>   keyboard_ctrl.set_key_up_x(1),
+                            Event::KeyUp { keycode: Some(Keycode::Kp2), .. } =>   keyboard_ctrl.set_key_up_x(2),
+                            Event::KeyUp { keycode: Some(Keycode::Kp3), .. } =>   keyboard_ctrl.set_key_up_x(3),
+                            Event::KeyUp { keycode: Some(Keycode::Kp4), .. } =>   keyboard_ctrl.set_key_up_x(4),
+                            Event::KeyUp { keycode: Some(Keycode::Kp5), .. } =>   keyboard_ctrl.set_key_up_x(5),
+                            Event::KeyUp { keycode: Some(Keycode::Kp6), .. } =>   keyboard_ctrl.set_key_up_x(6),
+                            Event::KeyUp { keycode: Some(Keycode::Kp7), .. } =>   keyboard_ctrl.set_key_up_x(7),
+                            Event::KeyUp { keycode: Some(Keycode::Kp8), .. } =>   keyboard_ctrl.set_key_up_x(8),
+                            Event::KeyUp { keycode: Some(Keycode::Kp9), .. } =>   keyboard_ctrl.set_key_up_x(9),
+                            Event::KeyUp { keycode: Some(Keycode::A), .. } =>     keyboard_ctrl.set_key_up_x(0xa),
+                            Event::KeyUp { keycode: Some(Keycode::B), .. } =>     keyboard_ctrl.set_key_up_x(0xb),
+                            Event::KeyUp { keycode: Some(Keycode::C), .. } =>     keyboard_ctrl.set_key_up_x(0xc),
+                            Event::KeyUp { keycode: Some(Keycode::D), .. } =>     keyboard_ctrl.set_key_up_x(0xd),
+                            Event::KeyUp { keycode: Some(Keycode::E), .. } =>     keyboard_ctrl.set_key_up_x(0xe),
+                            Event::KeyUp { keycode: Some(Keycode::F), .. } =>     keyboard_ctrl.set_key_up_x(0xf),
+                            _ => {}
+                        }
                     }
+
+                    cpu_ctrl.exec_next_instr(mem_ctrl, self, keyboard_ctrl);
                 }
-        
+
                 self.window.canvas.present();
                 std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
             }

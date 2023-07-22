@@ -13,7 +13,7 @@ Here are the only sources of knowledge I used up to this point:
 |https://doc.rust-lang.org/book/|That's right, I didn't know anything about Rust and yet I decided to program an emulator using it... This book is phenomenal and covers basically everything you need to know to start your journey with the language. If you're an experienced Rust developer, please don't mind some "inappropriate" code here and there.|
 
 ## Current Features
-As it is, the emulator can run a simple demo game program (file demo.ch8 located in the "game-program" folder):
+OUTDATED (Will be updated soon): As it is, the emulator can run a simple demo game program (file demo.ch8 located in the "game-program" folder):
 ![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)
 _This demo game program was downloaded from the web Chip8 emulator (Octo) referred earlier._
 
@@ -44,11 +44,11 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`Bnnn` - JP V0, addr|Yes|
 |`Cxkk` - RND Vx, byte|Yes|
 |`Dxyn` - DRW Vx, Vy, nibble|Yes|
-|`Ex9E` - SKP Vx|No|
-|`ExA1` - SKNP Vx|No|
-|`Fx07` - LD Vx, DT|No|
+|`Ex9E` - SKP Vx|Yes|
+|`ExA1` - SKNP Vx|Yes|
+|`Fx07` - LD Vx, DT|Yes|
 |`Fx0A` - LD Vx, K|No|
-|`Fx15` - LD DT, Vx|No|
+|`Fx15` - LD DT, Vx|Yes|
 |`Fx18` - LD ST, Vx|No|
 |`Fx1E` - ADD I, Vx|No|
 |`Fx29` - LD F, Vx|No|
@@ -56,7 +56,7 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`Fx55` - LD [I], Vx|No|
 |`Fx65` - LD Vx, [I]|No|
 
-In total, **23** instructions are currently implemented.
+In total, **27** instructions are currently implemented.
 
 ## Building
 This project uses SDL2 so, in order to build it, you'll need to follow some steps located on the page https://github.com/Rust-SDL2/rust-sdl2.
