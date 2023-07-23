@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
-pub mod emu;
+pub mod conf;
 pub mod gfx;
+pub mod inst;
+pub mod kbrd;
+pub mod mem;
 pub mod util;
 
-use emu::emulator::{ 
-    EmulatorConfiguration,
-    Memory,
-    MemoryController,
-    Keyboard,
-    KeyboardController,
-    CpuController
-};
-
-use gfx::graphics::{ CustomWindow, CustomWindowController };
-
+use conf::config::EmulatorConfiguration;
+use gfx::graphics::*;
+use inst::cpu::CpuController;
+use kbrd::keyboard::*;
+use mem::memory::*;
 use std::env;
 
 fn main() {
@@ -31,11 +28,11 @@ fn main() {
             emu_config.get_pixel_color()
         ));
     
-    // TODO: Let the user decide which ROM file to load via CLI.
     let mut rom_path = String::from(env::current_dir().unwrap().to_str().unwrap());
     rom_path.push_str("\\");
     rom_path.push_str(emu_config.get_default_ch8_folder());
-    rom_path.push_str("\\default.ch8");
+    // TODO: Let the user decide which ROM file to load from folder via CLI.
+    rom_path.push_str("\\default.ch8"); 
     
     let mut mem_ctrl = MemoryController::new(Memory::new());
     mem_ctrl.init_ram(&rom_path);
@@ -44,5 +41,5 @@ fn main() {
 
     let mut cpu_ctrl = CpuController::new(&mem_ctrl, emu_config.get_cycles_per_frame());
 
-    window_controller.render_and_handle_inputs(&mut mem_ctrl, &mut keyboard_ctrl, &mut cpu_ctrl);
+    window_controller.render_and_listen_events(&mut mem_ctrl, &mut keyboard_ctrl, &mut cpu_ctrl);
 }
