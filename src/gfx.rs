@@ -90,8 +90,6 @@ pub mod graphics {
             self.clear_screen();
 
             'running: loop {
-                mem_ctrl.dec_dt();
-
                 for _ in 0..cpu_ctrl.get_cycles_per_frame() {
                     for event in event_pump.poll_iter() {
                         match event {
@@ -135,6 +133,7 @@ pub mod graphics {
 
                     cpu_ctrl.exec_next_instr(mem_ctrl, self, keyboard_ctrl);
                 }
+                mem_ctrl.dec_all_timers();
 
                 self.window.canvas.present();
                 std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
@@ -166,6 +165,7 @@ pub mod graphics {
         }
 
         pub fn clear_screen(&mut self) {
+            self.window.pixel_vec.fill(0);
             self.window.canvas.set_draw_color(self.window.bg_color);
             self.window.canvas.clear();
         }

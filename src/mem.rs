@@ -155,6 +155,25 @@ pub mod memory {
             }
         }
 
+        pub fn get_st(&self) -> u8 {
+            self.mem.st
+        }
+
+        pub fn set_st(&mut self, val: u8) {
+            self.mem.st = val;
+        }
+
+        pub fn dec_st(&mut self) {
+            if self.mem.st != 0 {
+                self.mem.st -= 1;
+            }
+        }
+
+        pub fn dec_all_timers(&mut self) {
+            self.dec_dt();
+            self.dec_st();
+        }
+
         pub fn get_pc(&self) -> u16 {
             self.mem.pc
         }
@@ -183,6 +202,7 @@ pub mod memory {
 
         pub fn stack_pop(&mut self) {
             self.mem.pc = self.mem.stack[(self.mem.sp - 1) as usize];
+            self.mem.stack[(self.mem.sp - 1) as usize] = 0;
             self.mem.sp -= 1;
         }
 

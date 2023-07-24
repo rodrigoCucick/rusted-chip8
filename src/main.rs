@@ -32,7 +32,7 @@ fn main() {
     rom_path.push_str("\\");
     rom_path.push_str(emu_config.get_default_ch8_folder());
     // TODO: Let the user decide which ROM file to load from folder via CLI.
-    rom_path.push_str("\\default.ch8"); 
+    rom_path.push_str("\\f8z.ch8"); 
     
     let mut mem_ctrl = MemoryController::new(Memory::new());
     mem_ctrl.init_ram(&rom_path);

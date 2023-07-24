@@ -47,16 +47,16 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`Ex9E` - SKP Vx|Yes|
 |`ExA1` - SKNP Vx|Yes|
 |`Fx07` - LD Vx, DT|Yes|
-|`Fx0A` - LD Vx, K|No|
+|`Fx0A` - LD Vx, K|Yes|
 |`Fx15` - LD DT, Vx|Yes|
-|`Fx18` - LD ST, Vx|No|
-|`Fx1E` - ADD I, Vx|No|
-|`Fx29` - LD F, Vx|No|
-|`Fx33` - LD B, Vx|No|
-|`Fx55` - LD [I], Vx|No|
-|`Fx65` - LD Vx, [I]|No|
+|`Fx18` - LD ST, Vx|Yes|
+|`Fx1E` - ADD I, Vx|Yes|
+|`Fx29` - LD F, Vx|Yes|
+|`Fx33` - LD B, Vx|Yes|
+|`Fx55` - LD [I], Vx|Yes|
+|`Fx65` - LD Vx, [I]|Yes|
 
-In total, **27** instructions are currently implemented.
+In total, **34** instructions are currently implemented. **100% Completed!**
 
 ## Building
 This project uses SDL2 so, in order to build it, you'll need to follow some steps located on the page https://github.com/Rust-SDL2/rust-sdl2.

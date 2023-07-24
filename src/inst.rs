@@ -48,7 +48,7 @@ pub mod cpu {
             win_ctrl: &mut CustomWindowController,
             keyboard_ctrl: &mut KeyboardController) {
             self.load_next_instr(mem_ctrl);
-
+            
             // 00E0 - CLS
             if self.word == 0x00e0 {
                 win_ctrl.clear_screen();
@@ -56,7 +56,7 @@ pub mod cpu {
             // 00EE - RET
             } else if self.word == 0x00ee {
                 mem_ctrl.stack_pop();
-                return;
+                //return;
 
             // 1nnn - JP addr
             } else if self.first_nibble == 1 {
@@ -226,14 +226,63 @@ pub mod cpu {
                     mem_ctrl.set_v_by_nibble(self.second_nibble, mem_ctrl.get_dt());
                 }
 
+                // 0A - LD Vx, K
+                else if self.second_byte == 0x0a {
+                    match keyboard_ctrl.get_any_key_down() {
+                        Some(key_down) => mem_ctrl.set_v_by_nibble(self.second_nibble, key_down),
+                        None => return
+                    }
+                }
+
                 // 15 - LD DT, Vx
                 else if self.second_byte == 0x15 {
                     let temp_vx = mem_ctrl.get_v_by_nibble(self.second_nibble);
                     mem_ctrl.set_dt(temp_vx);
                 }
+
+                // 18 - LD ST, Vx
+                else if self.second_byte == 0x18 {
+                    mem_ctrl.set_st(self.second_nibble);
+                }
+
+                // 1E - ADD I, Vx
+                else if self.second_byte == 0x1e {
+                    let temp_vx = mem_ctrl.get_v_by_nibble(self.second_nibble) as u16;
+                    mem_ctrl.set_i(mem_ctrl.get_i().wrapping_add(temp_vx));
+                }
+
+                // 29 - LD F, Vx
+                else if self.second_byte == 0x29 {
+                    let temp_vx = mem_ctrl.get_v_by_nibble(self.second_byte) as usize;
+                    mem_ctrl.set_i(mem_ctrl.get_ram()[temp_vx * 5] as u16);
+                }
+
+                // 33 - LD B, Vx
+                else if self.second_byte == 0x33 {
+                    let bcd_tuple = BitManipulator::decimal_to_8bit_bcd_tuple(
+                        mem_ctrl.get_v_by_nibble(self.second_nibble));
+                    let temp_i = mem_ctrl.get_i();
+                    mem_ctrl.get_ram()[temp_i as usize] = bcd_tuple.0;
+                    mem_ctrl.get_ram()[temp_i as usize + 1] = bcd_tuple.1;
+                    mem_ctrl.get_ram()[temp_i as usize + 2] = bcd_tuple.2;
+                }
+
+                // 55 - LD [I], Vx
+                else if self.second_byte == 0x55 {
+                    for i in 0..=self.second_nibble {
+                        mem_ctrl.get_ram()[(mem_ctrl.get_i() + i as u16) as usize] = mem_ctrl.get_v_by_nibble(i);
+                    }
+                }
+
+                // 65 - LD Vx, [I]
+                else if self.second_byte == 0x65 {
+                    for i in 0..=self.second_nibble {
+                        mem_ctrl.set_v_by_nibble(i, mem_ctrl.get_ram()[(mem_ctrl.get_i() + i as u16) as usize]);
+                    }
+                }
             }
 
-            // The program counter is incremented by 2 because all instructions are 2 bytes
+            // The program counter is always incremented by 2 because all instructions are 2 bytes
             // and the ram stores 1 byte values only.
             mem_ctrl.inc_pc_by(2); 
         }

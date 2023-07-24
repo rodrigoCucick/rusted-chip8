@@ -20,5 +20,27 @@ pub mod utilities {
         pub fn make_16bit_instr_from_bytes(first_byte: u8, second_byte: u8) -> u16 {
             (first_byte as u16) << 8 | (second_byte as u16)
         }
+
+        pub fn decimal_to_8bit_bcd_tuple(decimal: u8) -> (u8, u8, u8) {
+            let mut hundreds: u8 = 0;
+            let mut tens: u8 = 0;
+            let mut ones: u8 = 0;
+
+            if decimal >= 100 {
+                hundreds = decimal / 100;
+                let hundreds_mod = decimal % 100;
+                tens = hundreds_mod / 10;
+                let tens_mod = hundreds_mod % 10;
+                ones = tens_mod / 1;
+            } else if decimal >= 10 && decimal <= 99 {
+                tens = decimal / 10;
+                let tens_mod = decimal % 10;
+                ones = tens_mod / 1;
+            } else if decimal <= 9 {
+                ones = decimal;
+            }
+
+            (hundreds, tens, ones)
+        }
     }
 }
