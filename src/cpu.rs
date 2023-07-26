@@ -19,6 +19,7 @@ pub mod cpu {
         third_nibble: u8,  // 00001111[0000]1111
         fourth_nibble: u8, // 000011110000[1111]
         cycles_per_frame: u32,
+        inc_pc: bool,
     }
 
     impl CpuController {
@@ -36,6 +37,7 @@ pub mod cpu {
                 third_nibble:  mem_ctrl.get_ram()[lower_addr + 1] >> 4,
                 fourth_nibble: mem_ctrl.get_ram()[lower_addr + 1] & 0b0000_1111,
                 cycles_per_frame,
+                inc_pc: true
             }
         }
 
@@ -45,90 +47,24 @@ pub mod cpu {
 
         pub fn fetch_exec(
             &mut self,
+            keyboard_ctrl: &mut KeyboardController,
             mem_ctrl: &mut MemoryController,
-            win_ctrl: &mut CustomWindowController,
-            keyboard_ctrl: &mut KeyboardController) {
+            win_ctrl: &mut CustomWindowController) {
+
+            self.inc_pc = true;
             self.load_next_instr(mem_ctrl);
             
-            if self.word == 0x00e0 {
-                self.clear_screen(win_ctrl);
-            } else if self.word == 0x00ee {
-                self.return_from_subroutine(mem_ctrl);
-            } else if self.first_nibble == 1 {
-                self.jump_to_address(mem_ctrl); return;
-            } else if self.first_nibble == 2 {
-                self.call_address(mem_ctrl); return;
-            } else if self.first_nibble == 3 {
-                self.skip_equal_vx_byte(mem_ctrl);
-            } else if self.first_nibble == 4 {
-                self.skip_not_equal_vx_byte(mem_ctrl);
-            } else if self.first_nibble == 5 {
-                self.skip_equal_vx_vy(mem_ctrl);
-            } else if self.first_nibble == 6 {
-                self.set_vx_byte(mem_ctrl);
-            } else if self.first_nibble == 7 {
-                self.add_vx_byte(mem_ctrl);
-            } else if self.first_nibble == 8 {
-                if self.fourth_nibble == 0 {
-                    self.set_vx_vy(mem_ctrl);
-                } else if self.fourth_nibble == 1 {
-                    self.set_vx_or_vy(mem_ctrl);
-                } else if self.fourth_nibble == 2 {
-                    self.set_vx_and_vy(mem_ctrl);
-                } else if self.fourth_nibble == 3 {
-                    self.set_vx_xor_vy(mem_ctrl);
-                } else if self.fourth_nibble == 4 {
-                    self.add_vx_vy(mem_ctrl);
-                } else if self.fourth_nibble == 5 {
-                    self.sub_vx_vy(mem_ctrl);
-                } else if self.fourth_nibble == 6 {
-                    self.shift_right_vx_vy(mem_ctrl);
-                } else if self.fourth_nibble == 7 {
-                    self.subn_vx_vy(mem_ctrl);
-                } else if self.fourth_nibble == 0xe {
-                    self.shift_left_vx_vy(mem_ctrl);
-                }
-            } else if self.first_nibble == 9 {
-                self.skip_not_equal_vx_vy(mem_ctrl);
-            } else if self.first_nibble == 0xa {
-                self.set_i_address(mem_ctrl);
-            } else if self.first_nibble == 0xb {
-                self.jump_to_address_plus_v0(mem_ctrl);
-            } else if self.first_nibble == 0xc {
-                self.set_vx_and_random_byte(mem_ctrl);
-            } else if self.first_nibble == 0xd {  
-                self.draw_sprite(mem_ctrl, win_ctrl);
-            } else if self.first_nibble == 0xe {
-                if self.second_byte == 0x9e {
-                    self.skip_if_key_vx_is_pressed(keyboard_ctrl, mem_ctrl);
-                } else if self.second_byte == 0xa1 {
-                    self.skip_if_key_vx_is_not_pressed(keyboard_ctrl, mem_ctrl);
-                }
-            } else if self.first_nibble == 0xf {
-                if self.second_byte == 0x07 {
-                    self.set_vx_dt(mem_ctrl);
-                } else if self.second_byte == 0x0a {
-                    if let CpuState::Halted = self.halt_until_key_press(keyboard_ctrl, mem_ctrl) { return; }
-                } else if self.second_byte == 0x15 {
-                    self.set_dt_vx(mem_ctrl);
-                } else if self.second_byte == 0x18 {
-                    self.set_st_vx(mem_ctrl);
-                } else if self.second_byte == 0x1e {
-                    self.add_i_vx(mem_ctrl);
-                } else if self.second_byte == 0x29 {
-                    self.set_i_sprite_digit_vx(mem_ctrl);
-                } else if self.second_byte == 0x33 {
-                    self.copy_bcd_vx_into_addr_i(mem_ctrl);
-                } else if self.second_byte == 0x55 {
-                    self.copy_v0_through_vx_into_addr_i(mem_ctrl);
-                } else if self.second_byte == 0x65 {
-                    self.read_v0_through_vx_from_addr_i(mem_ctrl);
-                }
+            match self.word {
+                0x00e0 => self.clear_screen(win_ctrl),
+                0x00ee => self.return_from_subroutine(mem_ctrl),
+                _ => self.exec_instr_by_nibble(keyboard_ctrl, mem_ctrl, win_ctrl)
             }
 
             // The program counter is always incremented by 2 because all instructions are 2 bytes
             // and the ram stores 1 byte values only.
-            mem_ctrl.inc_pc_by(2); 
+            if self.inc_pc {
+                mem_ctrl.inc_pc_by(2);
+            }
         }
 
         fn load_next_instr(&mut self, mem_ctrl: &MemoryController) {
@@ -141,6 +77,68 @@ pub mod cpu {
             self.second_nibble = mem_ctrl.get_ram()[lower_addr] & 0b0000_1111;
             self.third_nibble =  mem_ctrl.get_ram()[lower_addr + 1] >> 4;
             self.fourth_nibble = mem_ctrl.get_ram()[lower_addr + 1] & 0b0000_1111;
+        }
+
+        fn exec_instr_by_nibble(
+            &mut self,
+            keyboard_ctrl: &mut KeyboardController,
+            mem_ctrl: &mut MemoryController,
+            win_ctrl: &mut CustomWindowController) {
+                
+            match self.first_nibble {
+                1 => { self.jump_to_address(mem_ctrl); self.inc_pc = false; },
+                2 => { self.call_address(mem_ctrl); self.inc_pc = false; },
+                3 => self.skip_equal_vx_byte(mem_ctrl),
+                4 => self.skip_not_equal_vx_byte(mem_ctrl),
+                5 => self.skip_equal_vx_vy(mem_ctrl),
+                6 => self.set_vx_byte(mem_ctrl),
+                7 => self.add_vx_byte(mem_ctrl),
+                8 => {
+                    match self.fourth_nibble {
+                        0 => self.set_vx_vy(mem_ctrl),
+                        1 => self.set_vx_or_vy(mem_ctrl),
+                        2 => self.set_vx_and_vy(mem_ctrl),
+                        3 => self.set_vx_xor_vy(mem_ctrl),
+                        4 => self.add_vx_vy(mem_ctrl),
+                        5 => self.sub_vx_vy(mem_ctrl),
+                        6 => self.shift_right_vx_vy(mem_ctrl),
+                        7 => self.subn_vx_vy(mem_ctrl),
+                        0xe => self.shift_left_vx_vy(mem_ctrl),
+                        _ => return
+                    }
+                },
+                9 => self.skip_not_equal_vx_vy(mem_ctrl),
+                0xa => self.set_i_address(mem_ctrl),
+                0xb => self.jump_to_address_plus_v0(mem_ctrl),
+                0xc => self.set_vx_and_random_byte(mem_ctrl),
+                0xd => self.draw_sprite(mem_ctrl, win_ctrl),
+                0xe => {
+                    match self.second_byte {
+                        0x9e => self.skip_if_key_vx_is_pressed(keyboard_ctrl, mem_ctrl),
+                        0xa1 => self.skip_if_key_vx_is_not_pressed(keyboard_ctrl, mem_ctrl),
+                        _ => return
+                    }
+                },
+                0xf => {
+                    match self.second_byte {
+                        0x07 => self.set_vx_dt(mem_ctrl),
+                        0x0a => {
+                            if let CpuState::Halted = self.halt_until_key_press(keyboard_ctrl, mem_ctrl) {
+                                self.inc_pc = false;
+                            }
+                        },
+                        0x15 => self.set_dt_vx(mem_ctrl),
+                        0x18 => self.set_st_vx(mem_ctrl),
+                        0x1e => self.add_i_vx(mem_ctrl),
+                        0x29 => self.set_i_sprite_digit_vx(mem_ctrl),
+                        0x33 => self.copy_bcd_vx_into_addr_i(mem_ctrl),
+                        0x55 => self.copy_v0_through_vx_into_addr_i(mem_ctrl),
+                        0x65 => self.read_v0_through_vx_from_addr_i(mem_ctrl),
+                        _ => return
+                    }
+                },
+                _ => return
+            }
         }
 
         // 00E0 - CLS

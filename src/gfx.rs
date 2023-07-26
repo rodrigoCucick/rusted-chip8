@@ -131,7 +131,7 @@ pub mod graphics {
                         }
                     }
 
-                    cpu_ctrl.fetch_exec(mem_ctrl, self, keyboard_ctrl);
+                    cpu_ctrl.fetch_exec(keyboard_ctrl, mem_ctrl, self);
                 }
 
                 //TODO: Add buzzer when DT is > 0.
