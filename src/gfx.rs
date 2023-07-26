@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
 pub mod graphics {
-    use crate::inst::cpu::CpuController;
+    use crate::cpu::cpu::CpuController;
     use crate::kbrd::keyboard::KeyboardController;
     use crate::mem::memory::MemoryController;
     use crate::util::utilities::Math2d;
@@ -48,7 +48,7 @@ pub mod graphics {
                 .window(win_title, win_w_scaled, win_h_scaled).position_centered().build().unwrap()
                 .into_canvas().build().unwrap();
 
-            if let Ok(win_icon) = Surface::from_file(".\\assets\\img\\icon.png") {
+            if let Ok(win_icon) = Surface::from_file(".\\assets\\img\\icon-64x64.png") {
                 canvas.window_mut().set_icon(win_icon);
             }
             
@@ -131,8 +131,10 @@ pub mod graphics {
                         }
                     }
 
-                    cpu_ctrl.exec_next_instr(mem_ctrl, self, keyboard_ctrl);
+                    cpu_ctrl.fetch_exec(mem_ctrl, self, keyboard_ctrl);
                 }
+
+                //TODO: Add buzzer when DT is > 0.
                 mem_ctrl.dec_all_timers();
 
                 self.window.canvas.present();

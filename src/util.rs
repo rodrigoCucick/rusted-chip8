@@ -10,9 +10,9 @@ pub mod utilities {
         }
     }
 
-    pub struct BitManipulator;
+    pub struct Bit;
 
-    impl BitManipulator {
+    impl Bit {
         pub fn make_16bit_addr_from_nibbles(second_nibble: u8, third_nibble: u8, fourth_nibble: u8) -> u16 {
             (second_nibble as u16) << 8 | (third_nibble as u16) << 4 | (fourth_nibble as u16)
         }
@@ -41,6 +41,17 @@ pub mod utilities {
             }
 
             (hundreds, tens, ones)
+        }
+    }
+
+    pub struct Logic;
+
+    impl Logic {
+        pub fn bool_to_u8(exp: bool) -> u8 {
+            match exp {
+                true  => 1,
+                false => 0
+            }
         }
     }
 }
