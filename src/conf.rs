@@ -70,6 +70,8 @@ pub mod config {
                 }
             };
 
+            emu_config.default_ch8_folder.insert_str(0, "\\");
+            emu_config.default_ch8_folder.insert_str(emu_config.get_default_ch8_folder().len(), "\\");
             emu_config
         }
         

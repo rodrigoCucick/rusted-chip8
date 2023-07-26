@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
 pub mod utilities {
+    use std::io::Result;
+
     pub struct Math2d;
 
     impl Math2d {
@@ -52,6 +54,61 @@ pub mod utilities {
                 true  => 1,
                 false => 0
             }
+        }
+    }
+
+    pub struct EmuFile;
+
+    impl EmuFile {
+        pub fn get_files_in_directory(path: &str) -> Result<Vec<String>> {
+            let entries = std::fs::read_dir(path)?;
+        
+            let file_names: Vec<String> = entries
+                .filter_map(|entry| {
+                    let path = entry.ok()?.path();
+                    if path.is_file() {
+                        path.file_name()?.to_str().map(|s| s.to_owned())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+        
+            Ok(file_names)
+        }
+
+        pub fn file_selection_menu(roms: &Vec<String>) -> usize {
+            if roms.len() == 0 {
+                panic!("Couldn't find any .ch8 file in the folder provided to 'default_ch8_folder' in 'config.txt'!");
+            }
+
+            let mut choice: usize;
+            loop {
+                println!("Select a file to run:");
+                for (i, rom) in roms.iter().enumerate() {
+                    if rom.contains(".ch8") {
+                        println!("[{i}]: {rom}");
+                    }
+                }
+
+                let mut input_str = String::new();
+                std::io::stdin().read_line(&mut input_str).unwrap();
+            
+                choice = match input_str.trim().parse() {
+                    Ok(choice) => choice,
+                    Err(_) => {
+                        println!("Invalid input!");
+                        continue;
+                    }
+                };
+
+                if choice >= roms.len() {
+                    println!("Invalid number!");
+                    continue;
+                }
+                break;
+            }
+            choice
         }
     }
 }

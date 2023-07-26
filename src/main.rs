@@ -14,10 +14,21 @@ use gfx::graphics::*;
 use kbrd::keyboard::*;
 use mem::memory::*;
 use std::env;
+use util::utilities::EmuFile;
 
 fn main() {
     let emu_config = EmulatorConfiguration::new();
-    
+
+    let mut roms_path = String::from(env::current_dir().unwrap().to_str().unwrap());
+    roms_path.push_str(emu_config.get_default_ch8_folder());
+
+    let roms = match EmuFile::get_files_in_directory(&roms_path) {
+        Ok(file_names) => file_names,
+        Err(_) => panic!("Invalid folder provided to 'default_ch8_folder' in 'config.txt'!")
+    };
+
+    roms_path.push_str(roms.get(EmuFile::file_selection_menu(&roms)).unwrap());
+
     let mut window_controller =
         CustomWindowController::new(CustomWindow::create_and_display_window(
             "Rusted - Chip-8 Emulator/Interpreter",
@@ -27,15 +38,9 @@ fn main() {
             emu_config.get_bg_color(),
             emu_config.get_pixel_color()
         ));
-    
-    let mut rom_path = String::from(env::current_dir().unwrap().to_str().unwrap());
-    rom_path.push_str("\\");
-    rom_path.push_str(emu_config.get_default_ch8_folder());
-    // TODO: Let the user decide which ROM file to load from folder via CLI.
-    rom_path.push_str("\\f8z.ch8"); 
-    
+
     let mut mem_ctrl = MemoryController::new(Memory::new());
-    mem_ctrl.init_ram(&rom_path);
+    mem_ctrl.init_ram(&roms_path);
 
     let mut keyboard_ctrl = KeyboardController::new(Keyboard::new());
 
