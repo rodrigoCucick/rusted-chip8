@@ -78,17 +78,24 @@ pub mod utilities {
         }
 
         pub fn file_selection_menu(roms: &Vec<String>) -> usize {
+            // TODO: Refactor this associated function.
             if roms.len() == 0 {
                 panic!("Couldn't find any .ch8 file in the folder provided to 'default_ch8_folder' in 'config.txt'!");
             }
 
             let mut choice: usize;
             loop {
+                let mut contains_ch8 = false;
                 println!("Select a file to run:");
                 for (i, rom) in roms.iter().enumerate() {
                     if rom.contains(".ch8") {
                         println!("[{i}]: {rom}");
+                        contains_ch8 = true;
                     }
+                }
+
+                if !contains_ch8 {
+                    panic!("Couldn't find any .ch8 file in the folder provided to 'default_ch8_folder' in 'config.txt'!");
                 }
 
                 let mut input_str = String::new();

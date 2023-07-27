@@ -13,11 +13,16 @@ Here are the only sources of knowledge I used up to this point:
 |https://doc.rust-lang.org/book/|That's right, I didn't know anything about Rust and yet I decided to program an emulator using it... This book is phenomenal and covers basically everything you need to know to start your journey with the language. If you're an experienced Rust developer, please don't mind some "inappropriate" code here and there.|
 
 ## Current Features
-OUTDATED (Will be updated soon): As it is, the emulator can run a simple demo game program (file demo.ch8 located in the "game-program" folder):
-![rusted-chip8](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/3d5b7226-06dc-49df-8d8e-d9500f03ec83)
-_This demo game program was downloaded from the web Chip8 emulator (Octo) referred earlier._
+Macro features:
+|Feature|Implemented?|
+|--|--|
+|Instructions (CPU)|Yes|
+|Memory|Yes|
+|Input|Yes|
+|Display|Yes|
+|Audio (buzzer)|No|
 
-Implementation progress can be tracked by viewing the following table (I'll keep it updated as the project grows):
+Individual instructions:
 |Instruction|Implemented?|
 |--|--|
 |`00E0` - CLS|Yes|
@@ -56,7 +61,7 @@ Implementation progress can be tracked by viewing the following table (I'll keep
 |`Fx55` - LD [I], Vx|Yes|
 |`Fx65` - LD Vx, [I]|Yes|
 
-In total, **34** instructions are currently implemented. **100% Completed!**
+As it is, the emulator is only missing the buzzer, that means no sound effects for now.
 
 ## Building
 This project uses SDL2 so, in order to build it, you'll need to follow some steps located on the page https://github.com/Rust-SDL2/rust-sdl2.

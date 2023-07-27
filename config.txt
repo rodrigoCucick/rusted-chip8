@@ -1,5 +1,5 @@
 # The internal emulator's video resolution (64x32) is multiplied by this value. Default=10 Min=1 Max=20
-scale=20
+scale=10
 # The amount of instruction cycles per rendered frame. Default=20 Min=1 Max=1000
 cycles_per_frame=100
 # The color of the background. It should be a comma separated list of 3 decimal values (R,G,B) ranging from 0 to 255. Default=0,0,0 (BLACK)
