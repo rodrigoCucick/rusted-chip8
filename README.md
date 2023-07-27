@@ -1,3 +1,4 @@
+![icon-112x112](https://github.com/rodrigoCucick/rusted-chip8/assets/16089829/8e1def2b-d5fe-452e-a198-5f765a93845a)
 # Rusted - Chip-8 Emulator/Interpreter
 A Chip-8 emulator/interpreter written in Rust that uses SDL2.
 
