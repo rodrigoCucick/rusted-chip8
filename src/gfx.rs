@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
 pub mod graphics {
+    use crate::aud::audio::Buzzer;
     use crate::cpu::cpu::CpuController;
     use crate::kbrd::keyboard::KeyboardController;
     use crate::mem::memory::MemoryController;
@@ -79,12 +80,15 @@ pub mod graphics {
             Self { window }
         }
 
+        // TODO: Refactor to detach functionalities.
         pub fn render_and_listen_events(
             &mut self,
             mem_ctrl: &mut MemoryController,
             keyboard_ctrl: &mut KeyboardController,
-            cpu_ctrl: &mut CpuController) {
+            cpu_ctrl: &mut CpuController,
+            dt_equals_buzzer: bool) {
             let mut event_pump = self.window.sdl_context.event_pump().unwrap();
+            let mut buzzer = Buzzer::new_square_wave_buzzer(&self.window.sdl_context);
 
             self.window.canvas.set_scale(self.window.scale as f32, self.window.scale as f32).unwrap();
             self.clear_screen();
@@ -132,9 +136,12 @@ pub mod graphics {
                     }
 
                     cpu_ctrl.fetch_exec(keyboard_ctrl, mem_ctrl, self);
-                }
 
-                //TODO: Add buzzer when DT is > 0.
+                    if dt_equals_buzzer {
+                        buzzer.play_based_on_dt(mem_ctrl.get_dt());
+                    }
+                }
+                
                 mem_ctrl.dec_all_timers();
 
                 self.window.canvas.present();

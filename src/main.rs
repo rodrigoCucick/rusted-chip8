@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
+pub mod aud;
 pub mod conf;
 pub mod cpu;
 pub mod gfx;
@@ -46,5 +47,5 @@ fn main() {
 
     let mut cpu_ctrl = CpuController::new(&mem_ctrl, emu_config.get_cycles_per_frame());
 
-    window_controller.render_and_listen_events(&mut mem_ctrl, &mut keyboard_ctrl, &mut cpu_ctrl);
+    window_controller.render_and_listen_events(&mut mem_ctrl, &mut keyboard_ctrl, &mut cpu_ctrl, emu_config.get_dt_equals_buzzer());
 }

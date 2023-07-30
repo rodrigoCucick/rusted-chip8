@@ -12,6 +12,7 @@ pub mod config {
         bg_color: Color,
         pixel_color: Color,
         default_ch8_folder: String,
+        dt_equals_buzzer: bool,
     }
 
     impl EmulatorConfiguration {
@@ -45,7 +46,8 @@ pub mod config {
                             match config_name {
                                 "scale" => emu_config.scale = config_value.trim().parse().unwrap(),
                                 "cycles_per_frame" => emu_config.cycles_per_frame = config_value.trim().parse().unwrap(),
-                                "default_ch8_folder" => emu_config.default_ch8_folder = String::from(config_value),
+                                "default_ch8_folder" => emu_config.default_ch8_folder = String::from(config_value.trim()),
+                                "dt_equals_buzzer" => emu_config.dt_equals_buzzer = config_value.trim().parse().unwrap(),
                                 _ => ()
                             }
                         // Parse CSV values.
@@ -95,13 +97,18 @@ pub mod config {
             &self.default_ch8_folder
         }
 
+        pub fn get_dt_equals_buzzer(&self) -> bool {
+            self.dt_equals_buzzer
+        }
+
         fn new_default() -> Self {
             Self {
                 scale: 10,
                 cycles_per_frame: 20,
                 bg_color: Color::RGB(0x00, 0x00, 0x00),
                 pixel_color: Color::RGB(0xff, 0xff, 0xff),
-                default_ch8_folder: String::from("ch8")
+                default_ch8_folder: String::from("ch8"),
+                dt_equals_buzzer: false
             }
         }
     }

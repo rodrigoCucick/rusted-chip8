@@ -1,10 +1,30 @@
-# The internal emulator's video resolution (64x32) is multiplied by this value. Default=10 Min=1 Max=20
+# Rusted - Chip-8 Emulator/Interpreter
+# Configuration file to customize some of the emulator's settings.
+# ________________________________________________________________
+#
+# The internal emulator's video resolution (64x32) is multiplied by this value.
+# Default=10
+# Min=1
+# Max=20
 scale=10
-# The amount of instruction cycles per rendered frame. Default=20 Min=1 Max=1000
+# The amount of instruction cycles per rendered frame.
+# Default=20
+# Min=1
+# Max=1000
 cycles_per_frame=100
-# The color of the background. It should be a comma separated list of 3 decimal values (R,G,B) ranging from 0 to 255. Default=0,0,0 (BLACK)
+# The color of the background.
+# It should be a comma separated list of 3 decimal values (R,G,B) ranging from 0 to 255.
+# Default=0,0,0 (BLACK)
 bg_color=0,0,0
-# Defines the color of the pixels. It should be a comma separated list of 3 decimal values (R,G,B) ranging from 0 to 255. Default=255,255,255 (WHITE)
+# The color of the pixels.
+# It should be a comma separated list of 3 decimal values (R,G,B) ranging from 0 to 255.
+# Default=255,255,255 (WHITE)
 pixel_color=255,255,255
-# The default folder where the CH8 files are located. It should be relative to the emulator's executable.
+# The default folder where the CH8 files are located.
+# It should be relative to the emulator's executable.
 default_ch8_folder=ch8
+# Buzzer ON(true)/OFF(false).
+# The original behavior is to use the DT (delay timer) register's value to control the buzzer,
+# but the majority of modern games use DT for other purposes, so it's turned OFF(false) by default.
+# Default=false
+dt_equals_buzzer=false
