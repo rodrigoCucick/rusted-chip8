@@ -21,7 +21,7 @@ Macro features:
 |Memory|Yes|
 |Input|Yes|
 |Display|Yes|
-|Audio (buzzer)|No|
+|Audio (buzzer)|Yes|
 
 Individual instructions:
 |Instruction|Implemented?|
@@ -61,8 +61,6 @@ Individual instructions:
 |`Fx33` - LD B, Vx|Yes|
 |`Fx55` - LD [I], Vx|Yes|
 |`Fx65` - LD Vx, [I]|Yes|
-
-As it is, the emulator is only missing the buzzer, that means no sound effects for now.
 
 ## Building
 This project uses SDL2 so, in order to build it, you'll need to follow some steps located on the page https://github.com/Rust-SDL2/rust-sdl2.
