@@ -107,7 +107,7 @@ The SDL2 files are the following:
 5. SDL2_image.dll
 6. SDL2_image.lib
 
-To execute the emulator, the file `SDL2.dll` needs to be in the same folder where the main executable `rusted.exe` is located.
+To execute the emulator, the files `SDL2.dll` and `SDL2_image.dll` need to be in the same folder where the main executable `rusted-chip8.exe` is located.
 
 To be able to debug the code _(I used __VS Code__ with the extension __CodeLLDB__)_, the files `SDL2.dll` and `SDL2_image.dll` need to be in the root folder of the project (alongside with `Cargo.toml`).
 
