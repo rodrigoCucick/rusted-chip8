@@ -1,1 +1,1 @@
-Put the .ch8 files here.
+Place the .ch8 files here.

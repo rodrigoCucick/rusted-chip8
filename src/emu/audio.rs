@@ -1,16 +1,18 @@
-pub mod audio {
-    use sdl2::audio::{ AudioCallback, AudioSpecDesired, AudioDevice };
-    use sdl2::Sdl;
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 
-    pub struct Buzzer {
+pub mod buzzer {
+    use sdl2::audio::{ AudioCallback, AudioDevice, AudioSpecDesired };
+    use sdl2::AudioSubsystem;
+
+    pub struct BuzzerController {
         device: AudioDevice<SquareWave>,
+        st_equals_buzzer: bool,
         is_playing: bool,
     }
 
-    impl Buzzer {
-        pub fn new_square_wave_buzzer(sdl_context: &Sdl) -> Self {
-            let audio_subsystem = sdl_context.audio().unwrap();
-
+    impl BuzzerController {
+        pub fn new_square_wave_buzzer(audio_subsystem: AudioSubsystem, st_equals_buzzer: bool) -> Self {
             let desired_spec = AudioSpecDesired {
                 freq: Some(44100),
                 channels: Some(1),
@@ -22,20 +24,25 @@ pub mod audio {
                 &desired_spec,
                 |spec| {
                 SquareWave {
-                    phase_inc: 440.0 / spec.freq as f32,
                     phase: 0.0,
+                    phase_inc: 440.0 / spec.freq as f32,
                     volume: 0.25
                 }
             }).unwrap();
 
             Self {
                 device,
-                is_playing: false
+                st_equals_buzzer,
+                is_playing: false,
             }
         }
 
-        pub fn play_based_on_dt(&mut self, dt: u8) {
-            match dt {
+        pub fn play_based_on_st(&mut self, st: u8) {
+            if !self.st_equals_buzzer {
+                return;
+            }
+
+            match st {
                 0 => self.pause(),
                 _ => self.play()
             }
@@ -56,10 +63,10 @@ pub mod audio {
         }
     }
 
-    pub struct SquareWave {
-        pub phase_inc: f32,
-        pub phase: f32,
-        pub volume: f32
+    struct SquareWave {
+        phase: f32,
+        phase_inc: f32,
+        volume: f32,
     }
     
     impl AudioCallback for SquareWave {

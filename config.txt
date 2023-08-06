@@ -1,30 +1,54 @@
+# 2023 Rodrigo M. Cucick <r_monfredini@hotmail.com>
 # Rusted - Chip-8 Emulator/Interpreter
-# Configuration file to customize some of the emulator's settings.
-# ________________________________________________________________
-#
-# The internal emulator's video resolution (64x32) is multiplied by this value.
+# ___________________________________________________
+# The ASCII keyboard is mapped to the following keys:
+# ASCII KEYBOARD  ->  EMULATOR KEYBOARD
+# 1 | 2 | 3 | C       1 | 2 | 3 | 4
+# 4 | 5 | 6 | D       Q | W | E | R
+# 7 | 8 | 9 | E       A | S | D | F
+# A | 0 | B | F       Z | X | C | V
+# _____________________________________________________________________________
+# The amount of scaling done on the video resolution.
+# The internal video resolution (64x32) is multiplied by this value.
 # Default=10
 # Min=1
 # Max=20
 scale=10
+# ____________________________________________________
 # The amount of instruction cycles per rendered frame.
+# The engine will try to render the frames at 60hz.
 # Default=20
 # Min=1
-# Max=1000
-cycles_per_frame=100
+# Max=99999
+cycles_per_frame=20
+# ______________________________________________________________________________________
 # The color of the background.
 # It should be a comma separated list of 3 decimal values (R,G,B) ranging from 0 to 255.
 # Default=0,0,0 (BLACK)
 bg_color=0,0,0
+# ______________________________________________________________________________________
 # The color of the pixels.
 # It should be a comma separated list of 3 decimal values (R,G,B) ranging from 0 to 255.
 # Default=255,255,255 (WHITE)
 pixel_color=255,255,255
-# The default folder where the CH8 files are located.
+# ___________________________________________________
+# The default folder where the CH8 (ROM) files are located.
 # It should be relative to the emulator's executable.
+# Default=ch8
 default_ch8_folder=ch8
-# Buzzer ON(true)/OFF(false).
-# The original behavior is to use the DT (delay timer) register's value to control the buzzer,
-# but the majority of modern games use DT for other purposes, so it's turned OFF(false) by default.
+# _________________________________________________________________________________________________
+# The buzzer's original behavior is to sound (or not) based on the ST (sound timer) register's value,
+# but the majority of modern games use ST for other purposes, so it's turned OFF (false) by default.
 # Default=false
-dt_equals_buzzer=false
+st_equals_buzzer=false
+# _________________________________________________________________________________________________
+# The bit shift instructions SHR (8XY6) and SHL (8XYE) may be used differently by some games,
+# the majority of them expect the operations to be done using VY,
+# while others assume the operations only use VX, completely ignoring VY.
+# Default=true
+bit_shift_instructions_use_vy=true
+# _________________________________________________________________________________________________
+# The store (FX55) and read (FX65) instructions also may be used differently by some games,
+# the majority of them expect the register I to be changed to I + X + 1 after the operations,
+# while others assume the operations leave I unchanged.
+store_read_instructions_change_i=true

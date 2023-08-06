@@ -4,25 +4,19 @@
 pub mod utilities {
     use std::io::Result;
 
-    pub struct Math2d;
+    pub struct BitUtil;
 
-    impl Math2d {
-        pub fn wrap_coord(axis: u8, win_size: u32) -> u8 {
-            if axis as u32 > win_size - 1 { axis % win_size as u8 } else { axis }
-        }
-    }
-
-    pub struct Bit;
-
-    impl Bit {
-        pub fn make_16bit_addr_from_nibbles(second_nibble: u8, third_nibble: u8, fourth_nibble: u8) -> u16 {
-            (second_nibble as u16) << 8 | (third_nibble as u16) << 4 | (fourth_nibble as u16)
+    impl BitUtil {
+        pub fn make_16bit_addr_from_nibbles(x: u8, y: u8, fourth_nibble: u8) -> u16 {
+            (x as u16) << 8 | (y as u16) << 4 | (fourth_nibble as u16)
         }
 
         pub fn make_16bit_instr_from_bytes(first_byte: u8, second_byte: u8) -> u16 {
             (first_byte as u16) << 8 | (second_byte as u16)
         }
 
+        // TODO - I came up with this ugly algorithm to construct the BCD.
+        //        It'll propably be refactored/optimized in the future.
         pub fn decimal_to_8bit_bcd_tuple(decimal: u8) -> (u8, u8, u8) {
             let mut hundreds: u8 = 0;
             let mut tens: u8 = 0;
@@ -41,14 +35,13 @@ pub mod utilities {
             } else if decimal <= 9 {
                 ones = decimal;
             }
-
             (hundreds, tens, ones)
         }
     }
 
-    pub struct Logic;
+    pub struct LogicUtil;
 
-    impl Logic {
+    impl LogicUtil {
         pub fn bool_to_u8(exp: bool) -> u8 {
             match exp {
                 true  => 1,
@@ -57,9 +50,17 @@ pub mod utilities {
         }
     }
 
-    pub struct EmuFile;
+    pub struct Math2d;
 
-    impl EmuFile {
+    impl Math2d {
+        pub fn wrap_coord(axis: u8, win_size: u32) -> u8 {
+            if axis as u32 > win_size - 1 { axis % win_size as u8 } else { axis }
+        }
+    }
+
+    pub struct FileSelectionUtil;
+
+    impl FileSelectionUtil {
         pub fn get_files_in_directory(path: &str) -> Result<Vec<String>> {
             let entries = std::fs::read_dir(path)?;
         
@@ -78,7 +79,6 @@ pub mod utilities {
         }
 
         pub fn file_selection_menu(roms: &Vec<String>) -> usize {
-            // TODO: Refactor this associated function.
             if roms.len() == 0 {
                 panic!("Couldn't find any .ch8 file in the folder provided to 'default_ch8_folder' in 'config.txt'!");
             }
@@ -86,9 +86,9 @@ pub mod utilities {
             let mut choice: usize;
             loop {
                 let mut contains_ch8 = false;
-                println!("Select a file to run:");
+                println!("\nSelect a file to run:");
                 for (i, rom) in roms.iter().enumerate() {
-                    if rom.contains(".ch8") {
+                    if rom.to_lowercase().contains(".ch8") {
                         println!("[{i}]: {rom}");
                         contains_ch8 = true;
                     }
@@ -115,6 +115,9 @@ pub mod utilities {
                 }
                 break;
             }
+
+            println!();
+
             choice
         }
     }

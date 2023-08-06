@@ -14,22 +14,10 @@ pub mod memory {
         stack: [u16;16],
 
         // General purpose registers.
-        v0: u8,
-        v1: u8,
-        v2: u8,
-        v3: u8,
-        v4: u8,
-        v5: u8,
-        v6: u8,
-        v7: u8,
-        v8: u8,
-        v9: u8,
-        va: u8,
-        vb: u8,
-        vc: u8,
-        vd: u8,
-        ve: u8,
-        vf: u8,
+        v0: u8, v1: u8, v2: u8, v3: u8,
+        v4: u8, v5: u8, v6: u8, v7: u8,
+        v8: u8, v9: u8, va: u8, vb: u8,
+        vc: u8, vd: u8, ve: u8, vf: u8,
 
         // Delay timer: If non-zero (activated), it will be decremented by 1 at 60Hz (tied to the screen's refresh rate)
         // until it reaches zero (deactivated).
@@ -54,27 +42,15 @@ pub mod memory {
             Self {
                 ram:   [0;4096],
                 stack: [0;16],
-                v0: 0,
-                v1: 0,
-                v2: 0,
-                v3: 0,
-                v4: 0,
-                v5: 0,
-                v6: 0,
-                v7: 0,
-                v8: 0,
-                v9: 0,
-                va: 0,
-                vb: 0,
-                vc: 0,
-                vd: 0,
-                ve: 0,
-                vf: 0,
+                v0: 0, v1: 0, v2: 0, v3: 0,
+                v4: 0, v5: 0, v6: 0, v7: 0,
+                v8: 0, v9: 0, va: 0, vb: 0,
+                vc: 0, vd: 0, ve: 0, vf: 0,
                 dt: 0,
                 st: 0,
                 pc: 0x200, // Default initial address for the program counter.
                 sp: 0,
-                i:  0
+                i:  0,
             }
         }
     }
@@ -85,19 +61,23 @@ pub mod memory {
 
     impl MemoryController {
         pub fn new(mem: Memory) -> Self {
-            Self { mem }
+            Self { mem, }
         }
 
         pub fn init_ram(&mut self, rom_path: &str) {
             self.load_rom(rom_path);
-            self.load_hex_digits_sprites();
+            self.load_hex_digits();
         }
 
         pub fn get_ram(&self) -> [u8;4096] {
             self.mem.ram
         }
 
-        pub fn get_v_by_nibble(&mut self, nibble: u8) -> u8 {
+        pub fn set_ram(&mut self, index: usize, val: u8) {
+            self.mem.ram[index] = val;
+        }
+
+        pub fn get_v(&mut self, nibble: u8) -> u8 {
             match nibble {
                 0 =>   self.mem.v0,
                 1 =>   self.mem.v1,
@@ -119,7 +99,7 @@ pub mod memory {
             }
         }
 
-        pub fn set_v_by_nibble(&mut self, nibble: u8, val: u8) {
+        pub fn set_v(&mut self, nibble: u8, val: u8) {
             match nibble {
                 0 =>   self.mem.v0 = val,
                 1 =>   self.mem.v1 = val,
@@ -150,7 +130,7 @@ pub mod memory {
         }
 
         pub fn dec_dt(&mut self) {
-            if self.mem.dt != 0 {
+            if self.mem.dt > 0 {
                 self.mem.dt -= 1;
             }
         }
@@ -164,7 +144,7 @@ pub mod memory {
         }
 
         pub fn dec_st(&mut self) {
-            if self.mem.st != 0 {
+            if self.mem.st > 0 {
                 self.mem.st -= 1;
             }
         }
@@ -194,6 +174,10 @@ pub mod memory {
             self.mem.i = val;
         }
 
+        pub fn inc_i_by(&mut self, val:u16) {
+            self.mem.i += val;
+        }
+
         pub fn stack_push(&mut self, new_pc_addr: u16) {
             self.mem.sp += 1;
             self.mem.stack[(self.mem.sp - 1) as usize] = self.mem.pc;
@@ -206,7 +190,7 @@ pub mod memory {
             self.mem.sp -= 1;
         }
 
-        // Loads the default hex sprites (digits 0 to f) into memory starting at address 0,
+        // Loads the default sprites for the hexadecimal digits (0 to f) into memory starting at address 0,
         // with each bit of the byte representing the state of a pixel (ON/OFF).
         //
         // Example - The full sprite representation of the number 0 is composed of the following:
@@ -215,28 +199,27 @@ pub mod memory {
         // 3rd byte -> 10010000
         // 4th byte -> 10010000
         // 5th byte -> 11110000
-        fn load_hex_digits_sprites(&mut self) {
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 0, sprite_data:  [0xF0, 0x90, 0x90, 0x90, 0xF0] }); // 0
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 5, sprite_data:  [0x20, 0x60, 0x20, 0x20, 0x70] }); // 1
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 10, sprite_data: [0xF0, 0x10, 0xF0, 0x80, 0xF0] }); // 2
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 15, sprite_data: [0xF0, 0x10, 0xF0, 0x10, 0xF0] }); // 3
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 20, sprite_data: [0x90, 0x90, 0xF0, 0x10, 0x10] }); // 4
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 25, sprite_data: [0xF0, 0x80, 0xF0, 0x10, 0xF0] }); // 5
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 30, sprite_data: [0xF0, 0x80, 0xF0, 0x90, 0xF0] }); // 6
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 35, sprite_data: [0xF0, 0x10, 0x20, 0x40, 0x40] }); // 7
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 40, sprite_data: [0xF0, 0x90, 0xF0, 0x90, 0xF0] }); // 8
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 45, sprite_data: [0xF0, 0x90, 0xF0, 0x10, 0xF0] }); // 9
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 50, sprite_data: [0xF0, 0x90, 0xF0, 0x90, 0x90] }); // a
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 55, sprite_data: [0xE0, 0x90, 0xE0, 0x90, 0xE0] }); // b
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 60, sprite_data: [0xF0, 0x80, 0x80, 0x80, 0xF0] }); // c
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 65, sprite_data: [0xE0, 0x90, 0x90, 0x90, 0xE0] }); // d
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 70, sprite_data: [0xF0, 0x80, 0xF0, 0x80, 0xF0] }); // e
-            self.put_hex_sprite(SpriteFiveBytes { starting_index: 75, sprite_data: [0xF0, 0x80, 0xF0, 0x80, 0x80] }); // f
-        }
-
-        fn put_hex_sprite(&mut self, sprite_five_bytes: SpriteFiveBytes) {
-            for (i, &byte) in sprite_five_bytes.sprite_data.iter().enumerate() {
-                self.mem.ram[sprite_five_bytes.starting_index + (i as usize)] = byte;
+        fn load_hex_digits(&mut self) {
+            let hex_digits: [u8;80] = [
+                0xF0, 0x90, 0x90, 0x90, 0xF0,
+                0x20, 0x60, 0x20, 0x20, 0x70,
+                0xF0, 0x10, 0xF0, 0x80, 0xF0,
+                0xF0, 0x10, 0xF0, 0x10, 0xF0,
+                0x90, 0x90, 0xF0, 0x10, 0x10,
+                0xF0, 0x80, 0xF0, 0x10, 0xF0,
+                0xF0, 0x80, 0xF0, 0x90, 0xF0,
+                0xF0, 0x10, 0x20, 0x40, 0x40,
+                0xF0, 0x90, 0xF0, 0x90, 0xF0,
+                0xF0, 0x90, 0xF0, 0x10, 0xF0,
+                0xF0, 0x90, 0xF0, 0x90, 0x90,
+                0xE0, 0x90, 0xE0, 0x90, 0xE0,
+                0xF0, 0x80, 0x80, 0x80, 0xF0,
+                0xE0, 0x90, 0x90, 0x90, 0xE0,
+                0xF0, 0x80, 0xF0, 0x80, 0xF0,
+                0xF0, 0x80, 0xF0, 0x80, 0x80];
+            
+            for i in 0..hex_digits.len() {
+                self.mem.ram[i] = hex_digits[i];
             }
         }
 
@@ -245,18 +228,16 @@ pub mod memory {
             File::open(path).unwrap()
                 .read_to_end(&mut byte_vec).unwrap();
 
-            let mut address: usize = 0x200;
+            
+            if byte_vec.len() > 3232 {
+                panic!("Selected ROM size is greater than the available RAM!");
+            }
 
-            // TODO: Validate if the ROM fits into memory.
+            let mut address = self.mem.pc as usize;
             for byte in byte_vec {
                 self.mem.ram[address] = byte;
                 address += 1;
             }
         }
-    }
-
-    struct SpriteFiveBytes {
-        starting_index: usize,
-        sprite_data: [u8;5],
     }
 }
